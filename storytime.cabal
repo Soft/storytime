@@ -18,8 +18,20 @@ cabal-version:       >=1.10
 executable storytime
   main-is:             Main.hs
   -- other-modules:       
-  other-modules:       Storytime, Storytime.Types, Storytime.Monadic, Storytime.Parsing, Storytime.Evaluation, Storytime.Terminal
+  other-modules:       Storytime
+                     , Storytime.Types
+                     , Storytime.Monadic
+                     , Storytime.Parsing
+                     , Storytime.Evaluation
+                     , Storytime.Validate
+                     , Storytime.Terminal
   -- other-extensions:    
-  build-depends:       base >=4.7 && <4.8, containers >=0.5, mtl >=2.2, transformers >=0.4, text >=1.2, parsec >=3.1
+  build-depends:       base >=4.7 && <4.8
+                     , containers >=0.5
+                     , mtl >=2.2
+                     , transformers >=0.4
+                     , text >=1.2
+                     , parsec >=3.1
+                     , optparse-applicative >= 0.11
   -- hs-source-dirs:      
   default-language:    Haskell2010
