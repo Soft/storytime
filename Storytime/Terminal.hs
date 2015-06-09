@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Storytime.Terminal (termPlayer) where
 
+import System.Console.ANSI
 import Control.Applicative
 import Control.Monad
 import Control.Monad.IO.Class
@@ -13,7 +14,9 @@ import qualified Data.Text.IO as IO
 import Storytime.Types
 
 termPlayer :: Storytime IO ()
-termPlayer = do
+termPlayer = init >> do
+  liftIO $ clearScreen
+  liftIO $ setCursorPosition 0 0
   text <- currentText
   links <- currentLinks
   liftIO $ IO.putStrLn text
@@ -30,4 +33,7 @@ termPlayer = do
     termPlayer
   where
     putLink (i, l) = liftIO $ IO.putStrLn $ T.pack (show i) <> " " <> title l
+    init = lookupMeta "title" >>=
+           maybe (return ()) (liftIO . setTitle . T.unpack)
+
 

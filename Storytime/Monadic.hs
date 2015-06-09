@@ -43,3 +43,8 @@ selectLink l = do
 
 hasChoices :: (Functor m, Monad m) => Storytime m Bool
 hasChoices = not . null <$> currentLinks
+
+lookupMeta :: (Functor m, Monad m) => T.Text -> Storytime m (Maybe T.Text)
+lookupMeta k = M.lookup k <$> asks meta
+
+
