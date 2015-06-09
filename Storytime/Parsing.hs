@@ -25,10 +25,13 @@ ws1 :: Parser ()
 ws1 = void $ many1 (oneOf " \t")
 
 readIdent :: Parser T.Text
-readIdent = T.pack <$> liftM2 (:) letter (many $ alphaNum <|> oneOf "-")
+readIdent = T.pack <$> liftM2 (:) letter (many $ alphaNum <|> oneOf "-/")
 
 readIdent' :: Parser T.Text
 readIdent' = ws *> readIdent
+
+tok :: String -> Parser T.Text
+tok t = T.pack <$> (ws *> string t)
 
 readMeta :: Parser Meta
 readMeta = M.fromList <$> many (readLine <* eolOrEof)
@@ -41,7 +44,7 @@ readMeta = M.fromList <$> many (readLine <* eolOrEof)
                <*> tillEndOfLine
 
 readHeader :: Parser Tag
-readHeader = char '#' *> ws *> readIdent <* eolOrEof
+readHeader = char '*' *> readIdent' <* eolOrEof
 
 readShebang :: Parser ()
 readShebang = string "#!" *> tillEndOfLine *> eolOrEof
@@ -62,37 +65,39 @@ readLink = do
   cond <- option Nothing (Just <$> readCondClause)
   spaces
   act <- option [] readActionClause
-  string "]:"
+  tok "]:"
   ws
   title <- tillEndOfLine
   return $ Link target title cond act
   where
-    readCondClause = char '|' *> ws *> readExpr
-    readActionClause = char ',' *> ws *> sepBy1 readAction ws1
+    readCondClause = tok "|" *> ws *> readExpr
+    readActionClause = tok "," *> ws *> sepBy1 readAction ws1
 
 readExpr :: Parser Expr
 readExpr = buildExpressionParser table readTerm
   where
-    readTerm = (Var <$> (ws *> readIdent <* ws)) <|> parens readExpr
-    table = [[Prefix (char '~' *> pure Not)],
-             [Infix (ws *> string "&&" *> ws *> pure And) AssocLeft,
-              Infix (ws *> string "||" *> ws *> pure Or) AssocLeft]]
-    parens = between (char '(') (char ')')
+    readTerm = (Var <$> readIdent') <|> parens readExpr
+    table = [[Prefix (tok "~" *> pure Not)],
+             [Infix (tok "&&" *> pure And) AssocLeft,
+              Infix (tok "||" *> pure Or) AssocLeft]]
+    parens = between (tok "(") (tok ")")
+
+peek p = void (lookAhead $ try p)
 
 readDynText :: Parser DynText
-readDynText = manyTill (readCond <|> readLit) (lookAhead $ try terminator)
+readDynText = manyTill (readCond <|> readLit) terminator
   where
-    terminator = void (endOfLine *> readLink) <|>
-                 void (endOfLine *> readHeader) <|>
-                 void eof
+    terminator = peek (endOfLine *> readLink) <|>
+                 peek (endOfLine *> readHeader) <|>
+                 peek eof
 
 readText :: Parser T.Text
 readText = T.pack <$> manyTill anyChar (lookAhead $ try terminator)
   where
-    terminator = void (endOfLine *> readLink) <|>
-                 void (endOfLine *> readHeader) <|>
-                 void (oneOf "{}") <|>
-                 void eof
+    terminator = peek (endOfLine *> readLink) <|>
+                 peek (endOfLine *> readHeader) <|>
+                 peek (oneOf "{}") <|>
+                 peek eof
 
 readLit :: Parser Span
 readLit = Lit <$> readText

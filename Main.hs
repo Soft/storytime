@@ -10,4 +10,6 @@ main = do
   story <- loadStory file
   case story of
    Right st -> runStorytime termPlayer st
-   Left _ -> putStrLn "Failed to parse story file"
+   Left e -> do
+     putStrLn "Failed to parse story file: "
+     print e
