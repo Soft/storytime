@@ -114,8 +114,7 @@ readSection :: Parser Section
 readSection = Sect
               <$> readHeader
               <*> readDynText
-              <* endOfLine
-              <*> many (readLink <* spaces)
+              <*> option [] (endOfLine *> many (readLink <* spaces))
 
 readStory :: Parser Story
 readStory = do
