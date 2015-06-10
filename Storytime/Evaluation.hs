@@ -1,56 +1,64 @@
 {-# LANGUAGE OverloadedStrings, TypeFamilies #-}
-module Storytime.Evaluation (Eval(..), toText) where
+module Storytime.Evaluation (Eval(..), Evaluator, runEval, toText) where
 
 import Control.Applicative
+import Control.Monad.Reader
+import Data.Monoid
 import qualified Data.Map.Strict as M
 import qualified Data.Text as T
 
 import Storytime.Types
 
-variable :: Env -> Name -> Int
-variable e n = M.findWithDefault 0 n e
+variable :: Name -> Evaluator Int
+variable n = M.findWithDefault 0 n <$> ask
+
+binOp :: (Eval a, Eval b) => (Result a -> Result b -> c) -> a -> b -> Evaluator c
+binOp f a b = liftM2 f (eval a) (eval b)
+
+type Evaluator = Reader Env
 
 class Eval a where
   type Result a
-  eval :: Env -> a -> Result a
+  eval :: a -> Evaluator (Result a)
 
 instance Eval Value where
   type Result Value = Int
-  eval _ (EInt n) = n
-  eval e (EVar v) = variable e v
+  eval (EInt n) = return n
+  eval (EVar v) = variable v
 
 instance Eval BExpr where
   type Result BExpr = Bool
-  eval e (Equal a b) = numBinop (==) e a b
-  eval e (LessThan a b) = numBinop (<) e a b
-  eval e (GreaterThan a b) = numBinop (>) e a b
-  eval e (Not a) = not $ eval e a
-  eval e (And a b) = eval e a && eval e b
-  eval e (Or a b) = eval e a && eval e b
+  eval (Equal a b) = binOp (==) a b
+  eval (LessThan a b) = binOp (<) a b
+  eval (GreaterThan a b) = binOp (>) a b
+  eval (Not a) = not <$> eval a
+  eval (And a b) = binOp (&&) a b
+  eval (Or a b) = binOp (||) a b
 
 instance Eval Act where
   type Result Act = Env
-  eval e (Assign n v) = M.insert n (eval e v) e
-  eval e (Inc n) = M.insertWith (+) n 1 e
-  eval e (Dec n) = M.insertWith (+) n (-1) e
+  eval (Assign n v) = eval v >>= \v' -> M.insert n v' <$> ask
+  eval (Inc n) = M.insertWith (+) n 1 <$> ask
+  eval (Dec n) = M.insertWith (+) n (-1) <$> ask
 
 instance Eval IExpr where
   type Result IExpr = Int
-  eval e (Plus a b) = eval e a + eval e b
-  eval e (Minus a b) = eval e a - eval e b
-  eval e (Mult a b) = eval e a * eval e b
-  eval e (Val v) = eval e v
+  eval (Plus a b) = binOp (+) a b
+  eval (Minus a b) = binOp (-) a b
+  eval (Mult a b) = binOp (*) a b
+  eval (Val v) = eval v
 
 instance Eval Span where
   type Result Span = T.Text
-  eval _ (Lit a) = a
-  eval e (Var n) = T.pack . show $ variable e n
-  eval e (Cond ex a) | eval e ex = a
-                     | otherwise = ""
+  eval (Lit a) = return a
+  eval (Var n) = T.pack . show <$> variable n
+  eval (Cond ex a) = do
+    cond <- eval ex
+    return $ if cond then a else ""
+
+runEval :: Eval a => Env -> a -> Result a
+runEval e a = runReader (eval a) e
 
 toText :: Env -> [Span] -> T.Text
-toText e sp = T.concat $ eval e <$> sp
-
-numBinop :: (Int -> Int -> a) -> Env -> Value -> Value -> a
-numBinop x e a b = eval e a `x` eval e b
+toText e sp = mconcat $ map (runEval e) sp
 
