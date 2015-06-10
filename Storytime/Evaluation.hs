@@ -9,10 +9,14 @@ import Storytime.Types
 
 value :: Env -> Value -> Int
 value _ (EInt n) = n
-value e (EVar v) = M.findWithDefault 0 v e
+value e (EVar v) = variable e v
+
+variable :: Env -> Name -> Int
+variable e n = M.findWithDefault 0 n e
 
 evalSpan :: Env -> Span -> T.Text
 evalSpan _ (Lit a) = a
+evalSpan e (Var n) = T.pack . show $ variable e n
 evalSpan e (Cond ex a) | evalExpr e ex = a
                        | otherwise = ""
 

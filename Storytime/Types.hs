@@ -37,6 +37,7 @@ data Link = Link { target :: Tag
           deriving (Show, Eq)
 
 data Span = Lit T.Text
+          | Var Name
           | Cond Expr T.Text
           deriving (Show, Eq)
 
