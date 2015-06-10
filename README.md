@@ -14,6 +14,12 @@ cabal build
 cabal install --user
 ~~~
 
+## Usage
+
+~~~bash
+storytime [-V|--validate] FILE
+~~~
+
 ## Language
 
 ### Sections and Links
@@ -24,10 +30,10 @@ with an asterisk and following it with section's name. Section names have to
 begin with a letter and can contain alphanumeric characters, hyphen (-), or
 forward slash (/).
 
-~~~markdown
+~~~
 * beginning
 
-One in a far away land...
+Once in a far away land...
 
 [castle]: Explore the castle
 [invest]: Become a fairly successful middle manager at a mid-sized investment bank
@@ -44,8 +50,45 @@ derivatives market.
 
 ~~~
 
+Links connect the sections together and make the story come to live. Links have
+to be listed after the content of a section. In the most basic form, a link
+consists of a target and a title.
+
+### Variables and Conditions
+
+### Miscellanea
+
+Storytime documents can start with a metadata block. How the metadata will be
+used depends on the selected viewer.
+
+~~~
+% title: A Witty Title
+% author: John Doe
+
+* first-section
+
+...
+~~~
 
 ## Examples
+
+The embedded scripting language can be used to do all kinds of things that might
+not be immediately useful when writing interactive fiction. For example, one
+might make a story that calculates the fibonacci sequence:
+
+~~~
+* init, a = 1, b = 2, num = (a + b)
+
+${a}, ${b}...
+
+[fib]: Reticulate splines
+
+* fib
+${num}
+
+[fib, a = b, b = num, num = (a + b)]: Fibonacci!
+~~~
+
 
 ## License
 
