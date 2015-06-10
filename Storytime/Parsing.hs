@@ -43,8 +43,19 @@ readMeta = M.fromList <$> many (readLine <* eolOrEof)
                <* ws
                <*> tillEndOfLine
 
-readHeader :: Parser Tag
-readHeader = char '*' *> readIdent' <* eolOrEof
+readActionClause :: Parser [Act]
+readActionClause = tok "," *> ws *> sepBy1 readAction (tok ",")
+
+readCondClause :: Parser BExpr
+readCondClause = tok "|" *> ws *> try readBExpr <* ws
+
+readHeader :: Parser (Tag, [Act])
+readHeader = do
+  char '*'
+  tag <- readIdent'
+  acts <- option [] readActionClause
+  eolOrEof
+  return (tag, acts)
 
 readShebang :: Parser ()
 readShebang = string "#!" *> tillEndOfLine *> eolOrEof
@@ -88,9 +99,6 @@ readLink = do
   ws
   title' <- tillEndOfLine
   return $ Link target' title' cond' act
-  where
-    readCondClause = tok "|" *> ws *> try readBExpr <* ws
-    readActionClause = tok "," *> ws *> sepBy1 readAction (tok ",")
 
 parens :: Parser a -> Parser a
 parens = between (tok "(") (tok ")")
@@ -150,10 +158,11 @@ readDynText :: Parser DynText
 readDynText = many (try readCond <|> try readVar <|> readLit)
 
 readSection :: Parser Section
-readSection = Sect
-              <$> readHeader
-              <*> readDynText
-              <*> option [] (endOfLine *> many (readLink <* spaces))
+readSection = do
+  (tag, acts) <- readHeader
+  text <- readDynText
+  links <- option [] (endOfLine *> many (readLink <* spaces))
+  return $ Sect tag acts text links
 
 readStory :: Parser Story
 readStory = do

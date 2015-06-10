@@ -50,6 +50,7 @@ data Span = Lit T.Text
 type DynText = [Span]
 
 data Section = Sect { tag :: Tag
+                    , sectActs :: [Act]
                     , spans :: DynText
                     , links :: [Link] }
              deriving (Show, Eq)

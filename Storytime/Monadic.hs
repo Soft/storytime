@@ -11,9 +11,10 @@ import Storytime.Types
 import Storytime.Evaluation
 
 runStorytime :: Monad m => Storytime m a -> Story -> m (Either StoryError a)
-runStorytime (Storytime st) s = evalStateT (runReaderT (runExceptT st) s) initial
+runStorytime m s = evalStateT (runReaderT (runExceptT st) s) initial
   where
     initial = StoryState M.empty $ start s
+    (Storytime st) = selectSection (start s) >> m
 
 currentLinks :: Monad m => Storytime m [Link]
 currentLinks = do
@@ -27,6 +28,12 @@ currentText = do
   sect <- gets section
   return $ toText env $ spans sect
 
+selectSection :: Monad m => Section -> Storytime m ()
+selectSection s = do
+  mapM_ performAction $ sectActs s
+  st <- get
+  put $ st { section = s }
+
 performAction :: Monad m => Act -> Storytime m ()
 performAction a = modify perform
   where
@@ -36,10 +43,9 @@ selectLink :: Monad m => Link -> Storytime m ()
 selectLink l = do
   mapM_ performAction $ acts l
   sects' <- asks sects
-  st <- get
   let t = target l
   case M.lookup t sects' of
-   Just s -> put $ st { section = s }
+   Just s -> selectSection s
    Nothing -> throwError $ MissingSection t
 
 hasChoices :: (Functor m, Monad m) => Storytime m Bool
