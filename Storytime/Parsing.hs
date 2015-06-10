@@ -104,7 +104,7 @@ readExpr = buildExpressionParser table readTerm
 peek p = void (lookAhead $ try p)
 
 readDynText :: Parser DynText
-readDynText = manyTill (readCond <|> readLit) terminator
+readDynText = manyTill (try readCond <|> try readVar <|> readLit) terminator
   where
     terminator = peek (endOfLine *> readLink) <|>
                  peek (endOfLine *> readHeader) <|>
@@ -116,6 +116,7 @@ readText = T.pack <$> manyTill anyChar (lookAhead $ try terminator)
     terminator = peek (endOfLine *> readLink) <|>
                  peek (endOfLine *> readHeader) <|>
                  peek (oneOf "{}") <|>
+                 peek readVar <|>
                  peek eof
 
 readLit :: Parser Span
@@ -128,6 +129,9 @@ readCond = pure Cond
            <* char ':'
            <*> readText
            <* char '}'
+
+readVar :: Parser Span
+readVar = pure Var <* char '$' <*> readIdent
 
 readSection :: Parser Section
 readSection = Sect
