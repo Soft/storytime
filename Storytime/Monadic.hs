@@ -1,17 +1,17 @@
 module Storytime.Monadic where
 
 import Control.Applicative
+import Control.Monad.Except
 import Control.Monad.Reader
 import Control.Monad.State
 import qualified Data.Map.Strict as M
-import qualified Data.Set as S
 import qualified Data.Text as T
 
 import Storytime.Types
 import Storytime.Evaluation
 
-runStorytime :: Monad m => Storytime m a -> Story -> m a
-runStorytime (Storytime st) s = evalStateT (runReaderT st s) initial
+runStorytime :: Monad m => Storytime m a -> Story -> m (Either StoryError a)
+runStorytime (Storytime st) s = evalStateT (runReaderT (runExceptT st) s) initial
   where
     initial = StoryState M.empty $ start s
 
@@ -37,9 +37,10 @@ selectLink l = do
   mapM_ performAction $ acts l
   sects' <- asks sects
   st <- get
-  case M.lookup (target l) sects' of
+  let t = target l
+  case M.lookup t sects' of
    Just s -> put $ st { section = s }
-   Nothing -> error "Missing section" -- I should probably include ExceptT to the stack
+   Nothing -> throwError $ MissingSection t
 
 hasChoices :: (Functor m, Monad m) => Storytime m Bool
 hasChoices = not . null <$> currentLinks
