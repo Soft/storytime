@@ -25,10 +25,13 @@ handler validate file = do
   case story of
    Right st -> if validate
                then check st
-               else runStorytime termPlayer st
+               else runStorytime termPlayer st >>= report
    Left e -> do
      putStrLn "Failed to parse story file:"
      print e
+  where
+    report (Left e) = print e
+    report (Right a) = return a
 
 check :: Story -> IO ()
 check story = do

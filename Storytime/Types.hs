@@ -1,7 +1,8 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving, StandaloneDeriving #-}
-module Storytime.Types (Expr(..), Act(..), Name, Meta, Tag, Link(..), Span(..), DynText, Section(..), Story(..), Env, StoryState(..), Storytime(..), Value(..)) where
+module Storytime.Types where
 
 import Control.Applicative
+import Control.Monad.Except
 import Control.Monad.Reader
 import Control.Monad.State
 import qualified Data.Map.Strict as M
@@ -56,11 +57,17 @@ type Env = M.Map Name Int
 data StoryState = StoryState { env :: Env
                              , section :: Section }
 
-newtype Storytime m a = Storytime (ReaderT Story (StateT StoryState m) a)
+data StoryError = MissingSection Tag
+
+instance Show StoryError where
+  show (MissingSection t) = "Missing section: " ++ T.unpack t
+
+newtype Storytime m a = Storytime (ExceptT StoryError (ReaderT Story (StateT StoryState m)) a)
                       deriving ( Functor
                                , Applicative
                                , Monad
                                , MonadReader Story
-                               , MonadState StoryState)
+                               , MonadState StoryState
+                               , MonadError StoryError)
 
 deriving instance MonadIO m => MonadIO (Storytime m)
