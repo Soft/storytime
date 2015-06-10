@@ -1,11 +1,10 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving, StandaloneDeriving #-}
-module Storytime.Types (Expr(..), Act(..), Name, Meta, Tag, Link(..), Span(..), DynText, Section(..), Story(..), Env, StoryState(..), Storytime(..)) where
+module Storytime.Types (Expr(..), Act(..), Name, Meta, Tag, Link(..), Span(..), DynText, Section(..), Story(..), Env, StoryState(..), Storytime(..), Value(..)) where
 
 import Control.Applicative
 import Control.Monad.Reader
 import Control.Monad.State
 import qualified Data.Map.Strict as M
-import qualified Data.Set as S
 import qualified Data.Text as T
 
 type Name = T.Text
@@ -13,12 +12,17 @@ type Name = T.Text
 data Expr = Or Expr Expr
           | And Expr Expr
           | Not Expr
-          | Var Name
+          | Equal Value Value
+          | LessThan Value Value
+          | GreaterThan Value Value
           deriving (Show, Eq)
 
-data Act = Set Name
-         | Unset Name
-         | Flip Name
+data Value = EInt Int | EVar Name
+          deriving (Show, Eq)
+
+data Act = Inc Name
+         | Dec Name
+         | Assign Name Value
          deriving (Show, Eq)
 
 type Meta = M.Map T.Text T.Text
@@ -47,7 +51,7 @@ data Story = Story { meta :: Meta
                    , sects :: M.Map Tag Section }
            deriving (Show, Eq)
 
-type Env = S.Set Name
+type Env = M.Map Name Int
 
 data StoryState = StoryState { env :: Env
                              , section :: Section }

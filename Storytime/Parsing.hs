@@ -1,4 +1,4 @@
-module Storytime.Parsing (readStory, loadStory) where
+module Storytime.Parsing where
 
 import Control.Applicative hiding (many, optional, (<|>))
 import Control.Monad
@@ -49,37 +49,56 @@ readHeader = char '*' *> readIdent' <* eolOrEof
 readShebang :: Parser ()
 readShebang = string "#!" *> tillEndOfLine *> eolOrEof
 
+readValue :: Parser Value
+readValue = try number <|> var
+  where
+    number = do
+      ws
+      sign <- option id (char '-' *> pure negate)
+      num <- many1 digit
+      return . EInt . sign $ read num
+    var = EVar <$> readIdent'
+
+readEqual :: Parser Expr
+readEqual = Equal <$> readValue <* tok "=" <*> readValue
+
+readLessThan :: Parser Expr
+readLessThan = LessThan <$> readValue <* tok "<" <*> readValue
+
+readGreaterThan :: Parser Expr
+readGreaterThan = GreaterThan <$> readValue <* tok ">" <*> readValue
+
 readAction :: Parser Act
-readAction = do
-  mod <- oneOf "+-~"
-  var <- readIdent
-  return $ case mod of
-    '+' -> Set var
-    '-' -> Unset var
-    '~' -> Flip var
+readAction = increment <|> decrement <|> assignment
+  where
+    increment = pure Inc <* tok "+" <*> readIdent
+    decrement = pure Dec <* tok "-" <*> readIdent
+    assignment = Assign <$> readIdent' <* tok "=" <*> readValue
 
 readLink :: Parser Link
 readLink = do
   char '['
   target <- readIdent'
   cond <- option Nothing (Just <$> readCondClause)
-  spaces
   act <- option [] readActionClause
   tok "]:"
   ws
   title <- tillEndOfLine
   return $ Link target title cond act
   where
-    readCondClause = tok "|" *> ws *> readExpr
-    readActionClause = tok "," *> ws *> sepBy1 readAction ws1
+    readCondClause = tok "|" *> ws *> (try readExpr) <* ws
+    readActionClause = tok "," *> ws *> sepBy1 readAction (tok ",")
 
 readExpr :: Parser Expr
 readExpr = buildExpressionParser table readTerm
   where
-    readTerm = (Var <$> readIdent') <|> parens readExpr
-    table = [[Prefix (tok "~" *> pure Not)],
-             [Infix (tok "&&" *> pure And) AssocLeft,
-              Infix (tok "||" *> pure Or) AssocLeft]]
+    readTerm = try readEqual <|>
+               try readLessThan <|>
+               try readGreaterThan <|>
+               parens readExpr
+    table = [ [Prefix (try (tok "~" *> pure Not))]
+            , [ Infix (try (tok "&&" *> pure And)) AssocLeft
+              , Infix (try (tok "||" *> pure Or)) AssocLeft]]
     parens = between (tok "(") (tok ")")
 
 peek p = void (lookAhead $ try p)

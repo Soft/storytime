@@ -13,13 +13,13 @@ import Storytime.Evaluation
 runStorytime :: Monad m => Storytime m a -> Story -> m a
 runStorytime (Storytime st) s = evalStateT (runReaderT st s) initial
   where
-    initial = StoryState S.empty $ start s
+    initial = StoryState M.empty $ start s
 
 currentLinks :: Monad m => Storytime m [Link]
 currentLinks = do
   env <- gets env
   sect <- gets section
-  return $ filter (maybe True (eval env) . cond) $ links sect
+  return $ filter (maybe True (evalExpr env) . cond) $ links sect
 
 currentText :: Monad m => Storytime m T.Text
 currentText = do
@@ -30,7 +30,7 @@ currentText = do
 performAction :: Monad m => Act -> Storytime m ()
 performAction a = modify perform
   where
-    perform st@(StoryState e _) = st { env = evalAct a e }
+    perform st@(StoryState e _) = st { env = evalAct e a }
 
 selectLink :: Monad m => Link -> Storytime m ()
 selectLink l = do
