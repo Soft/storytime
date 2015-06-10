@@ -13,7 +13,7 @@ import qualified Data.Text.IO as IO
 import Storytime.Types
 
 tillEndOfLine :: Parser T.Text
-tillEndOfLine = T.pack <$> manyTill anyChar (lookAhead $ try endOfLine)
+tillEndOfLine = T.pack <$> manyTill anyChar (lookAhead $ try eolOrEof)
 
 eolOrEof :: Parser ()
 eolOrEof = void endOfLine <|> eof
@@ -72,7 +72,7 @@ readGreaterThan :: Parser BExpr
 readGreaterThan = GreaterThan <$> readValue <* tok ">" <*> readValue
 
 readAction :: Parser Act
-readAction = (try increment) <|> (try decrement) <|> assignment
+readAction = try increment <|> try decrement <|> assignment
   where
     increment = pure Inc <* tok "+" <*> readIdent
     decrement = pure Dec <* tok "-" <*> readIdent
@@ -81,17 +81,18 @@ readAction = (try increment) <|> (try decrement) <|> assignment
 readLink :: Parser Link
 readLink = do
   char '['
-  target <- readIdent'
-  cond <- option Nothing (Just <$> readCondClause)
+  target' <- readIdent'
+  cond' <- option Nothing (Just <$> readCondClause)
   act <- option [] readActionClause
   tok "]:"
   ws
-  title <- tillEndOfLine
-  return $ Link target title cond act
+  title' <- tillEndOfLine
+  return $ Link target' title' cond' act
   where
-    readCondClause = tok "|" *> ws *> (try readBExpr) <* ws
+    readCondClause = tok "|" *> ws *> try readBExpr <* ws
     readActionClause = tok "," *> ws *> sepBy1 readAction (tok ",")
 
+parens :: Parser a -> Parser a
 parens = between (tok "(") (tok ")")
 
 readBExpr :: Parser BExpr
@@ -111,42 +112,42 @@ readVal = Val <$> readValue
 readIExpr :: Parser IExpr
 readIExpr = buildExpressionParser table readTerm
   where
-    readTerm = try readVal <|> parens readIExpr
+    readTerm = try readVal <|>
+               parens readIExpr
     table = [ [ Infix (try (tok "*" *> pure Mult)) AssocLeft ]
             , [ Infix (try (tok "+" *> pure Plus)) AssocLeft
               , Infix (try (tok "-" *> pure Minus)) AssocLeft ] ]
 
+peek :: Parser a -> Parser ()
 peek p = void (lookAhead $ try p)
 
-readDynText :: Parser DynText
-readDynText = manyTill (try readCond <|> try readVar <|> readLit) terminator
-  where
-    terminator = peek (endOfLine *> readLink) <|>
-                 peek (endOfLine *> readHeader) <|>
-                 peek eof
-
-readText :: Parser T.Text
-readText = T.pack <$> manyTill anyChar (lookAhead $ try terminator)
-  where
-    terminator = peek (endOfLine *> readLink) <|>
-                 peek (endOfLine *> readHeader) <|>
-                 peek (oneOf "{}") <|>
-                 peek readVar <|>
-                 peek eof
+embed :: Parser a -> Parser a
+embed = between (string "${") (char '}')
 
 readLit :: Parser Span
-readLit = Lit <$> readText
+readLit = do
+  notFollowedBy header'
+  notFollowedBy link'
+  notFollowedBy $ char '$'
+  x <- anyChar
+  xs <- manyTill anyChar terminator
+  return . Lit . T.pack $ x:xs
+  where
+    header' = endOfLine *> readHeader
+    link' = endOfLine *> readLink
+    terminator = peek header' <|> peek link' <|> peek (char '$') <|> peek eof
 
 readCond :: Parser Span
-readCond = pure Cond
-           <* char '{'
-           <*> readBExpr
-           <* char ':'
-           <*> readText
-           <* char '}'
+readCond = embed (Cond <$> readBExpr <* tok ":" <*> readText)
 
 readVar :: Parser Span
-readVar = pure Var <* char '$' <*> readIdent
+readVar = embed (Var <$> readIdent)
+
+readText :: Parser T.Text
+readText = T.pack <$> many1 (noneOf "}")
+
+readDynText :: Parser DynText
+readDynText = many (try readCond <|> try readVar <|> readLit)
 
 readSection :: Parser Section
 readSection = Sect
@@ -157,12 +158,12 @@ readSection = Sect
 readStory :: Parser Story
 readStory = do
   optional readShebang
-  meta <- readMeta
+  meta' <- readMeta
   spaces
-  sects <- many1 readSection
-  let sects' = M.fromList [(tag s, s) | s <- sects]
+  sects' <- many1 readSection
+  let sectMap = M.fromList [(tag s, s) | s <- sects']
   eof
-  return $ Story meta (head sects) sects'
+  return $ Story meta' (head sects') sectMap
 
 loadStory :: FilePath -> IO (Either ParseError Story)
 loadStory p = withFile p ReadMode $ \h -> do
