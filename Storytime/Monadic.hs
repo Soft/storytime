@@ -19,7 +19,7 @@ currentLinks :: Monad m => Storytime m [Link]
 currentLinks = do
   env <- gets env
   sect <- gets section
-  return $ filter (maybe True (evalBExpr env) . cond) $ links sect
+  return $ filter (maybe True (eval env) . cond) $ links sect
 
 currentText :: Monad m => Storytime m T.Text
 currentText = do
@@ -30,7 +30,7 @@ currentText = do
 performAction :: Monad m => Act -> Storytime m ()
 performAction a = modify perform
   where
-    perform st@(StoryState e _) = st { env = evalAct e a }
+    perform st@(StoryState e _) = st { env = eval e a }
 
 selectLink :: Monad m => Link -> Storytime m ()
 selectLink l = do
