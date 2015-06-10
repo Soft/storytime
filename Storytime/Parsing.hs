@@ -49,31 +49,34 @@ readHeader = char '*' *> readIdent' <* eolOrEof
 readShebang :: Parser ()
 readShebang = string "#!" *> tillEndOfLine *> eolOrEof
 
+readInt :: Parser Int
+readInt = do
+  ws
+  sign <- option id (char '-' *> pure negate)
+  num <- many1 digit
+  return . sign $ read num
+
 readValue :: Parser Value
 readValue = try number <|> var
   where
-    number = do
-      ws
-      sign <- option id (char '-' *> pure negate)
-      num <- many1 digit
-      return . EInt . sign $ read num
+    number = EInt <$> readInt
     var = EVar <$> readIdent'
 
-readEqual :: Parser Expr
+readEqual :: Parser BExpr
 readEqual = Equal <$> readValue <* tok "=" <*> readValue
 
-readLessThan :: Parser Expr
+readLessThan :: Parser BExpr
 readLessThan = LessThan <$> readValue <* tok "<" <*> readValue
 
-readGreaterThan :: Parser Expr
+readGreaterThan :: Parser BExpr
 readGreaterThan = GreaterThan <$> readValue <* tok ">" <*> readValue
 
 readAction :: Parser Act
-readAction = increment <|> decrement <|> assignment
+readAction = (try increment) <|> (try decrement) <|> assignment
   where
     increment = pure Inc <* tok "+" <*> readIdent
     decrement = pure Dec <* tok "-" <*> readIdent
-    assignment = Assign <$> readIdent' <* tok "=" <*> readValue
+    assignment = Assign <$> readIdent' <* tok "=" <*> readIExpr
 
 readLink :: Parser Link
 readLink = do
@@ -86,20 +89,32 @@ readLink = do
   title <- tillEndOfLine
   return $ Link target title cond act
   where
-    readCondClause = tok "|" *> ws *> (try readExpr) <* ws
+    readCondClause = tok "|" *> ws *> (try readBExpr) <* ws
     readActionClause = tok "," *> ws *> sepBy1 readAction (tok ",")
 
-readExpr :: Parser Expr
-readExpr = buildExpressionParser table readTerm
+parens = between (tok "(") (tok ")")
+
+readBExpr :: Parser BExpr
+readBExpr = buildExpressionParser table readTerm
   where
     readTerm = try readEqual <|>
                try readLessThan <|>
                try readGreaterThan <|>
-               parens readExpr
-    table = [ [Prefix (try (tok "~" *> pure Not))]
+               parens readBExpr
+    table = [ [ Prefix (try (tok "~" *> pure Not)) ]
             , [ Infix (try (tok "&&" *> pure And)) AssocLeft
-              , Infix (try (tok "||" *> pure Or)) AssocLeft]]
-    parens = between (tok "(") (tok ")")
+              , Infix (try (tok "||" *> pure Or)) AssocLeft ] ]
+
+readVal :: Parser IExpr
+readVal = Val <$> readValue
+
+readIExpr :: Parser IExpr
+readIExpr = buildExpressionParser table readTerm
+  where
+    readTerm = try readVal <|> parens readIExpr
+    table = [ [ Infix (try (tok "*" *> pure Mult)) AssocLeft ]
+            , [ Infix (try (tok "+" *> pure Plus)) AssocLeft
+              , Infix (try (tok "-" *> pure Minus)) AssocLeft ] ]
 
 peek p = void (lookAhead $ try p)
 
@@ -125,7 +140,7 @@ readLit = Lit <$> readText
 readCond :: Parser Span
 readCond = pure Cond
            <* char '{'
-           <*> readExpr
+           <*> readBExpr
            <* char ':'
            <*> readText
            <* char '}'

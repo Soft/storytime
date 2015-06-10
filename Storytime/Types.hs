@@ -10,9 +10,9 @@ import qualified Data.Text as T
 
 type Name = T.Text
 
-data Expr = Or Expr Expr
-          | And Expr Expr
-          | Not Expr
+data BExpr = Or BExpr BExpr
+          | And BExpr BExpr
+          | Not BExpr
           | Equal Value Value
           | LessThan Value Value
           | GreaterThan Value Value
@@ -23,8 +23,14 @@ data Value = EInt Int | EVar Name
 
 data Act = Inc Name
          | Dec Name
-         | Assign Name Value
+         | Assign Name IExpr
          deriving (Show, Eq)
+
+data IExpr = Plus IExpr IExpr
+           | Minus IExpr IExpr
+           | Mult IExpr IExpr
+           | Val Value
+           deriving (Show, Eq)
 
 type Meta = M.Map T.Text T.Text
 
@@ -32,13 +38,13 @@ type Tag = T.Text
 
 data Link = Link { target :: Tag
                  , title :: T.Text
-                 , cond :: Maybe Expr
+                 , cond :: Maybe BExpr
                  , acts :: [Act] }
           deriving (Show, Eq)
 
 data Span = Lit T.Text
           | Var Name
-          | Cond Expr T.Text
+          | Cond BExpr T.Text
           deriving (Show, Eq)
 
 type DynText = [Span]
