@@ -27,7 +27,7 @@ storytime [-V|--validate] FILE
 Sections are the backbone of Storytime documents and every piece of fiction must
 have at least one of them. One can define a new section by starting the line
 with an asterisk and following it with section's name. Section names have to
-begin with a letter and can contain alphanumeric characters, hyphen (-), or
+begin with a letter and can contain alphanumeric characters, hyphen (-) and
 forward slash (/).
 
 ~~~
@@ -50,11 +50,71 @@ derivatives market.
 
 ~~~
 
+<!-- Say something about content and formatting -->
+
 Links connect the sections together and make the story come to live. Links have
 to be listed after the content of a section. In the most basic form, a link
 consists of a target and a title.
 
 ### Variables and Conditions
+
+It is sometimes useful to have conditional links between sections. Conditional
+link is only visible if a specified condition is met. Conditions are simple
+boolean expressions. Here are a few examples of valid conditions:
+`numberOfDragons > 900`, `a = b && b > 10`, `~(a = 1) || (a = 1)`. One can
+add a condition to a link by following the target with a bar (|) and the
+condition. For example:
+
+~~~
+
+* example
+
+[another | a > 5]: This link is only visible if 'a' is greater than five.
+[another | ~(a > 5) ]: This link is only visible if 'a' is not greater than five.
+
+* another
+
+Hurrah!
+
+~~~
+
+Links can also modify variables. The modifications only take place if the link
+is followed. If the player can use the link multiple times (for example, if the
+sections form loops), the modifications are executed every time. One can add
+multiple actions to a single link by separating them with a comma, the actions
+will be executed from left to right. 
+
+~~~
+* engaging-section
+
+Loop!
+
+[engaging-section | a < 9, +a]: This link leads to the same section and increments 'a' by one every time it is followed. The link will disappear after 'a' becomes greater than ten.
+[end| a > 8]: Forward
+
+* end
+
+...that was quite enough
+
+~~~
+
+Actions can contain simple integer expressions. For example, the following are
+all valid actions `a = a + 10`, `+power`, `-enemies`, `price = (a * b + c) - d`
+
+Here's another example:
+
+~~~
+* first
+
+Some text...
+
+[second, rubber-chicken = 1, points = points + 50]: Take the rubber chicken
+
+* second
+
+~~~
+
+### Embedding and Conditional Content
 
 ### Miscellanea
 
@@ -73,8 +133,8 @@ used depends on the selected viewer.
 ## Examples
 
 The embedded scripting language can be used to do all kinds of things that might
-not be immediately useful when writing interactive fiction. For example, one
-might make a story that calculates the fibonacci sequence:
+not be immediately useful for writing interactive fiction. For example, one
+might make a story that calculates the Fibonacci sequence:
 
 ~~~
 * init, a = 1, b = 2, num = (a + b)
@@ -84,6 +144,7 @@ ${a}, ${b}...
 [fib]: Reticulate splines
 
 * fib
+
 ${num}
 
 [fib, a = b, b = num, num = (a + b)]: Fibonacci!
@@ -92,4 +153,4 @@ ${num}
 
 ## License
 
-Storytime is licensed under Gnu General Public License version 3
+Storytime is distributed under the GNU General Public License version 3
