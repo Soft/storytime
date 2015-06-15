@@ -2,26 +2,32 @@
 module Storytime.Web (webPlayer) where
 
 import Prelude hiding (error)
-import Control.Applicative ((<$>), (<*>))
+import Control.Applicative
 import Control.Concurrent (forkIO, threadDelay)
-import Control.Concurrent.STM
-import Control.Monad.IO.Class
-import Control.Monad.Reader hiding (local)
-import Control.Monad.State
+import Control.Concurrent.STM (TVar, newTVar, readTVarIO, swapTVar, atomically)
+import Control.Monad ((>=>), void)
+import Control.Monad.IO.Class (MonadIO, liftIO)
+import Control.Monad.Reader (ask, asks)
+import Control.Monad.State (get)
 import Data.Aeson hiding (json)
-import Data.List
-import Data.Maybe
-import GHC.Generics
+import Data.List (find)
+import Data.Maybe (fromMaybe)
+import GHC.Generics (Generic)
 import Network.HTTP.Types
 import Network.Wai
-import Network.Wai.Handler.Warp
-import Network.Wai.Middleware.Local
-import Network.Wai.Middleware.Static
-import Network.Wai.Parse
+import Network.Wai.Application.Static (staticApp, defaultFileServerSettings)
+import Network.Wai.Handler.Warp (Port, run)
+import Network.Wai.Middleware.Local (local)
+import Network.Wai.Parse (parseRequestBody, lbsBackEnd)
+import Network.Wai.UrlMap (mapUrls, mount, mountRoot)
+import System.Directory (doesDirectoryExist, getCurrentDirectory)
+import System.FilePath ((</>))
 import System.Process (rawSystem)
 import Text.Read (readMaybe)
 import qualified Data.ByteString.Char8 as C8
 import qualified Data.Text as T
+
+import Paths_storytime
 
 import Storytime.Monadic
 import Storytime.Types
@@ -34,9 +40,9 @@ instance ToJSON View
 infixl 9 !?
 
 (!?) :: [a] -> Int -> Maybe a
-[]     !? i = Nothing
+[]     !? _ = Nothing
 (x:_)  !? 0 = Just x
-(x:xs) !? n | n < 0 = Nothing
+(_:xs) !? n | n < 0 = Nothing
             | otherwise = xs !? pred n
 
 getView :: (Functor m, Monad m) => Storytime m View
@@ -70,8 +76,8 @@ handleError = error . show
 json :: ToJSON a => Status -> a -> Response
 json s = responseLBS s [(hContentType, "application/json")] . encode
 
-app :: Request -> Storytime IO Response
-app req = route defs notFound req req
+api :: Request -> Storytime IO Response
+api req = route defs notFound req req
   where
     defs = [ (methodGet,  ["current"], handleCurrent)
            , (methodGet,  ["meta"],    handleMeta)
@@ -107,13 +113,27 @@ launchBrowser = liftIO . void . forkIO $ do
   where
     wait = 1 * 10^6
 
+-- This is bit of a hack to make testing easier
+getStaticDir :: IO FilePath
+getStaticDir = do
+  path <- getDataDir
+  exists <- doesDirectoryExist path
+  if exists
+    then return path
+    else do
+    cwd <- getCurrentDirectory
+    return $ cwd </> "Static"
+
 webPlayer :: Storytime IO ()
 webPlayer = do
   story <- ask
   make <- appMaker
+  static <- liftIO getStaticDir
   prompt
   launchBrowser
-  liftIO $ run port $ local forbidden $ make app
+  let app = mapUrls ( mount "api" (make api) <|>
+                      mountRoot (staticApp $ defaultFileServerSettings static) )
+  liftIO $ run port $ local forbidden app
   where
     prompt = liftIO . putStrLn $ "And the story begins (listening on port " ++ show port ++ ")"
     forbidden = responseLBS status403 [] ""
