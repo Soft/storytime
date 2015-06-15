@@ -1,6 +1,7 @@
 module Main where
 
 import Control.Monad
+import Data.Maybe (fromMaybe)
 import Options.Applicative
 import qualified Data.Text.IO as IO
 
@@ -16,16 +17,21 @@ main = join $ execParser opts
           <$> switch ( long "validate" <>
                        short 'V' <>
                        help "Run consistency checks on the input file and exit." )
+          <*> optional ( strOption ( long "ui" <>
+                                     short 'u' <>
+                                     metavar "INTERFACE" <>
+                                     help "Select interface" ))
           <*> argument str ( metavar "FILE" <>
                              action "file" )
 
-handler :: Bool -> FilePath -> IO ()
-handler validate file = do
+handler :: Bool -> Maybe String -> FilePath -> IO ()
+handler validate gui file = do
+  let player = fromMaybe defaultPlayer (gui >>= flip lookup playerMap)
   story <- loadStory file
   case story of
    Right st -> if validate
                then check st
-               else runFromStart webPlayer st >>= report
+               else runFromStart player st >>= report
    Left e -> do
      putStrLn "Failed to parse story file:"
      print e
@@ -45,3 +51,9 @@ check story = do
     missing = missingTargets story
     orphans' = orphans story
   
+defaultPlayer :: Storytime IO ()
+defaultPlayer = webPlayer
+
+playerMap :: [(String, Storytime IO ())]
+playerMap = [ ("web", webPlayer)
+            , ("term", termPlayer) ]
