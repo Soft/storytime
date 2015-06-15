@@ -1,43 +1,45 @@
+{-# LANGUAGE RecordWildCards #-}
 module Main where
 
 import Control.Monad
+import Data.List (intercalate)
 import Data.Maybe (fromMaybe)
 import Options.Applicative
 import qualified Data.Text.IO as IO
 
 import Storytime
 
+data Args = Args { validate :: Bool
+                 , interface :: Maybe String
+                 , file :: FilePath }
+
 main :: IO ()
-main = join $ execParser opts
+main = execParser opts >>= handler
   where
-    opts = info (helper <*> cmd) desc
+    opts = info (helper <*> args) desc
     desc = header "storytime: System for interactive fiction" <>
            progDesc "Interpreter for interactive fiction"
-    cmd = handler
+    players = intercalate ", " (fst <$> playerMap)
+    args = Args
           <$> switch ( long "validate" <>
                        short 'V' <>
                        help "Run consistency checks on the input file and exit." )
-          <*> optional ( strOption ( long "ui" <>
-                                     short 'u' <>
+          <*> optional ( strOption ( long "interface" <>
+                                     short 'i' <>
                                      metavar "INTERFACE" <>
-                                     help "Select interface" ))
+                                     help ("Select interface (" ++ players ++ ")") ))
           <*> argument str ( metavar "FILE" <>
                              action "file" )
 
-handler :: Bool -> Maybe String -> FilePath -> IO ()
-handler validate gui file = do
-  let player = fromMaybe defaultPlayer (gui >>= flip lookup playerMap)
+handler :: Args -> IO ()
+handler Args{..} = do
+  let player = fromMaybe defaultPlayer (interface >>= flip lookup playerMap)
   story <- loadStory file
   case story of
    Right st -> if validate
                then check st
-               else runFromStart player st >>= report
-   Left e -> do
-     putStrLn "Failed to parse story file:"
-     print e
-  where
-    report (Left e) = print e
-    report (Right a) = return a
+               else runFromStart player st >>= either print return
+   Left e -> putStrLn "Failed to parse story file:" >> print e
 
 check :: Story -> IO ()
 check story = do
