@@ -70,12 +70,13 @@ data StoryError = MissingSection Tag
 instance Show StoryError where
   show (MissingSection t) = "Missing section: " ++ T.unpack t
 
-newtype Storytime m a = Storytime (ExceptT StoryError (ReaderT Story (StateT StoryState m)) a)
+newtype Storytime m a = Storytime {
+  unStorytime :: ExceptT StoryError (ReaderT Story (StateT StoryState m)) a }
                       deriving ( Functor
                                , Applicative
                                , Monad
                                , MonadReader Story
                                , MonadState StoryState
-                               , MonadError StoryError)
+                               , MonadError StoryError )
 
 deriving instance MonadIO m => MonadIO (Storytime m)

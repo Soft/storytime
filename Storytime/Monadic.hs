@@ -10,11 +10,16 @@ import qualified Data.Text as T
 import Storytime.Types
 import Storytime.Evaluation
 
-runStorytime :: Monad m => Storytime m a -> Story -> m (Either StoryError a)
-runStorytime m s = evalStateT (runReaderT (runExceptT st) s) initial
+runStorytime :: Monad m => Storytime m a -> Story -> StoryState -> m (Either StoryError a, StoryState)
+runStorytime m s = runStateT (runReaderT (runExceptT $ unStorytime m) s)
+
+runFromStart :: Monad m => Storytime m a -> Story -> m (Either StoryError a)
+runFromStart m s = liftM fst $ runStorytime m' s (startingState s)
   where
-    initial = StoryState M.empty $ start s
-    (Storytime st) = selectSection (start s) >> m
+    m' = selectSection (start s) >> m
+
+startingState :: Story -> StoryState
+startingState = StoryState M.empty . start
 
 currentLinks :: Monad m => Storytime m [Link]
 currentLinks = do

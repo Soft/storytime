@@ -25,7 +25,7 @@ handler validate file = do
   case story of
    Right st -> if validate
                then check st
-               else runStorytime termPlayer st >>= report
+               else runFromStart webPlayer st >>= report
    Left e -> do
      putStrLn "Failed to parse story file:"
      print e
