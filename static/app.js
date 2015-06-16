@@ -18,9 +18,12 @@ function request(url, attrs) {
 			if (req.status === 200) {
 				success(req.responseText);
 			} else {
-				error(req.status, req.responseText);
+				error(req.responseText, req.status);
 			}
 		}
+	});
+	req.addEventListener("error", function() {
+		error("Connection error");
 	});
 	req.open(method, url, true);
 	if (attrs.data) {
@@ -126,10 +129,12 @@ function applyMeta() {
 				method: "POST",
 				data: { "id": index },
 				success: this.redisplay.bind(this),
-				error: function(status, str) {
+				error: function(str, status) {
 					if (status === 500) {
 						var data = JSON.parse(str);
 						this.notifier.send(data.error);
+					} else {
+						this.notifier.send(str);
 					}
 				}.bind(this)
 			});
