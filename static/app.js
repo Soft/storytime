@@ -37,7 +37,7 @@ function Notifier(root) {
 	root.appendChild(this.tray);
 };
 
-window.Notifier.prototype = {
+Notifier.prototype = {
 	send: function(str) {
 		var bubble = document.createElement("div");
 		bubble.textContent = str;

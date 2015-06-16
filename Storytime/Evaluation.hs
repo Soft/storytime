@@ -9,7 +9,7 @@ import qualified Data.Text as T
 
 import Storytime.Types
 
-variable :: Name -> Evaluator Int
+variable :: Name -> Evaluator Integer
 variable n = M.findWithDefault 0 n <$> ask
 
 binOp :: (Eval a, Eval b) => (Result a -> Result b -> c) -> a -> b -> Evaluator c
@@ -22,7 +22,7 @@ class Eval a where
   eval :: a -> Evaluator (Result a)
 
 instance Eval Value where
-  type Result Value = Int
+  type Result Value = Integer
   eval (EInt n) = return n
   eval (EVar v) = variable v
 
@@ -42,7 +42,7 @@ instance Eval Act where
   eval (Dec n) = M.insertWith (+) n (-1) <$> ask
 
 instance Eval IExpr where
-  type Result IExpr = Int
+  type Result IExpr = Integer
   eval (Plus a b) = binOp (+) a b
   eval (Minus a b) = binOp (-) a b
   eval (Mult a b) = binOp (*) a b
