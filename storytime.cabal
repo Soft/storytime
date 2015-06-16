@@ -15,7 +15,7 @@ build-type:          Simple
 -- extra-source-files:  
 cabal-version:       >=1.10
 data-dir:            static
-data-files:          index.html
+data-files:          *.html, *.css, *.js
 
 executable storytime
   main-is:             Main.hs
