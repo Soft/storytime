@@ -27,7 +27,7 @@ Currently, a web-based viewer and a simple terminal-based viewer are included.
 storytime [-V|--validate] [-i|--interface INTERFACE] FILE
 ~~~
 
-For example, the web-based viewer can be launched by simply running the command
+For example, the web-based viewer can be launched by simply running the command:
 
 ~~~bash
 storytime adventure.story
