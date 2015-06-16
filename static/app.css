@@ -11,11 +11,11 @@ body {
 
 #root {
 	margin: 50px auto;
-	width: 50%;
-	max-width: 900px;
 	font-family: Georgia, "Times New Roman", serif;
 	font-size: 1.3em;
 	line-height: 1.5em;
+	width: 50%;
+	max-width: 900px;
 }
 
 #root > article {
@@ -104,7 +104,9 @@ body {
 	width: 250px;
 	border-radius: 5px;
 	box-shadow: 0px 2px 5px 0px rgba(0, 0, 0, 0.5);
-	background: linear-gradient(to bottom, rgba(255,255,255,0.5) 0%,rgba(255,255,255,0.1) 16%,rgba(255,255,255,0) 22%), linear-gradient(to bottom, #050505 0%, #292929 100%);
+	background: linear-gradient(to bottom, rgba(255,255,255,0.5) 0%,rgba(255,255,255,0.1) 16%,rgba(255,255,255,0) 22%),
+	radial-gradient(ellipse at bottom center, rgba(28,33,168,1) 0%,rgba(28,33,168,0) 61%,rgba(28,33,168,0) 72%,rgba(28,33,168,0) 100%),
+	linear-gradient(to bottom, #050505 0%, #292929 100%);
 	color: #fff;
 	margin: 15px;
 	padding: 10px;
@@ -112,7 +114,8 @@ body {
 	font-size: 13px;
 	border: 1px solid #222;
 	text-shadow: 0px 1px 1px #000;
-	animation: fade-slide 2s ease-out;
+	animation: fade-slide 0.5s ease-in;
+	cursor: pointer;
 }
 
 

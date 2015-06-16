@@ -1,9 +1,9 @@
 # Storytime
 
 Storytime is a choice-based interactive fiction system. It features a simple
-plain-text format for writing stories and has a slick web interface playing them
-out. Building more complex narratives is also supported through the use of
-conditions and actions.
+plain-text format for writing stories and has a slick browser-based interface
+playing them out. Building more complex narratives is also supported through the
+use of conditions and actions.
 
 ## Installation
 
@@ -35,6 +35,9 @@ storytime adventure.story
 
 Running the command automatically opens the web browser pointing at the viewer
 playing out story from file `adventure.story`.
+
+The `--validate` switch instructs Storytime to perform some simple diagnostics
+on the story file and exit.
 
 ## Language
 
@@ -128,7 +131,30 @@ Some text...
 
 ~~~
 
-### Embedding and Conditional Content
+### Conditional Content
+
+Sections can also include conditional content. Example bellow demonstrates this:
+
+~~~
+* section
+
+What a fate! To be lost in an infinite maze of cubicles.
+${rubber-chicken>0: Luckily you have your trusted rubber chicken with
+you.}${~(rubber-chicken>0): To make matters worse, you left your rubber chicken
+at home.}
+
+~~~
+
+### Section Actions
+
+Sections can also have actions associated with them. The actions are executed
+every time player views the sections.
+
+~~~
+* example, +turn, price = price * 2
+
+...
+~~~
 
 ### Miscellanea
 
