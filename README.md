@@ -1,10 +1,14 @@
 # Storytime
 
 Storytime is a choice-based interactive fiction system. It features a simple
-plain-text format for creating stories and has a support for conditional
-execution and simple arithmetic.
+plain-text format for writing stories and has a slick web interface playing them
+out. Building more complex narratives is also supported through the use of
+conditions and actions.
 
-## Install
+## Installation
+
+Storytime is implemented in Haskell and currently the easiest way to install it
+is using Cabal packaging tool.
 
 ~~~bash
 hg clone ssh://hg@bitbucket.org/Soft/storytime
@@ -16,9 +20,21 @@ cabal install --user
 
 ## Usage
 
+Storytime has a support for multiple different interfaces for viewing content.
+Currently, a web-based viewer and a simple terminal-based viewer are included.
+
 ~~~bash
-storytime [-V|--validate] FILE
+storytime [-V|--validate] [-i|--interface INTERFACE] FILE
 ~~~
+
+For example, the web-based viewer can be launched by simply running the command
+
+~~~bash
+storytime adventure.story
+~~~
+
+Running the command automatically opens the web browser pointing at the viewer
+playing out story from file `adventure.story`.
 
 ## Language
 
@@ -49,8 +65,6 @@ On a whim, you decide to look for lucrative investment opportunities in the
 derivatives market.
 
 ~~~
-
-<!-- Say something about content and formatting -->
 
 Links connect the sections together and make the story come to live. Links have
 to be listed after the content of a section. In the most basic form, a link
