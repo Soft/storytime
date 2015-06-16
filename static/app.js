@@ -47,12 +47,19 @@ Notifier.prototype = {
 };
 
 function applyMeta() {
+	var actions = {
+		"title": function(str) {
+			document.title = str;
+		}
+	};
 	request("/api/meta", {
 		success: function(str) {
 			var data = JSON.parse(str);
-			if (data.title) {
-				document.title = data.title;
-			}
+			Object.keys(data).forEach(function(k) {
+				if (actions.hasOwnProperty(k)) {
+					actions[k](data[k]);
+				}
+			});
 		}
 	});
 }
@@ -89,7 +96,7 @@ function applyMeta() {
 
 	window.View = function View(root) {
 		this.root = root;
-		this.state = {};
+		this.state = { text: "", links: [] };
 
 		this.content = document.createElement("article");
 		root.appendChild(this.content);
@@ -122,7 +129,7 @@ function applyMeta() {
 				error: function(status, str) {
 					if (status === 500) {
 						var data = JSON.parse(str);
-						this.notifier.send(data["error"]);
+						this.notifier.send(data.error);
 					}
 				}.bind(this)
 			});
@@ -132,8 +139,8 @@ function applyMeta() {
 		render: function() {
 			clearElement(this.content);
 			clearElement(this.nav);
-			this.content.appendChild(format(this.state["text"]));
-			this.state["links"].forEach(function(str, ind) {
+			this.content.appendChild(format(this.state.text));
+			this.state.links.forEach(function(str, ind) {
 				var item = document.createElement("li");
 				var link = document.createElement("a");
 				link.addEventListener("click", this.navigate.bind(this, ind));
