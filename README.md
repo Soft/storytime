@@ -190,6 +190,11 @@ ${num}
 [fib, a = b, b = num, num = (a + b)]: Fibonacci!
 ~~~
 
+## Bugs
+
+Storytime is still at the experimental stage of development and bugs are bound
+to occur from time to time. Bug reporst can be filled at the
+[issue tracker hosted at BitBucket](https://bitbucket.org/Soft/storytime/issues).
 
 ## License
 
