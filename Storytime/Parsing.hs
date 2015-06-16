@@ -60,7 +60,7 @@ readHeader = do
 readShebang :: Parser ()
 readShebang = string "#!" *> tillEndOfLine *> eolOrEof
 
-readInt :: Parser Int
+readInt :: Parser Integer
 readInt = do
   ws
   sign <- option id (char '-' *> pure negate)

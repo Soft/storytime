@@ -18,7 +18,7 @@ data BExpr = Or BExpr BExpr
           | GreaterThan Value Value
           deriving (Show, Eq)
 
-data Value = EInt Int | EVar Name
+data Value = EInt Integer | EVar Name
           deriving (Show, Eq)
 
 data Act = Inc Name
@@ -60,7 +60,7 @@ data Story = Story { meta :: Meta
                    , sects :: M.Map Tag Section }
            deriving (Show, Eq)
 
-type Env = M.Map Name Int
+type Env = M.Map Name Integer
 
 data StoryState = StoryState { env :: Env
                              , section :: Section }
