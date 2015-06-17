@@ -2,8 +2,8 @@
 
 Storytime is a choice-based interactive fiction system. It features a simple
 plain-text format for writing stories and has a slick browser-based interface
-playing them out. Building more complex narratives is also supported through the
-use of conditions and actions.
+for playing them out. Building more complex narratives is also supported through
+the use of conditions and actions.
 
 ## Installation
 
@@ -189,6 +189,8 @@ ${num}
 
 [fib, a = b, b = num, num = (a + b)]: Fibonacci!
 ~~~
+
+The examples folder in the repository contains few example stories.
 
 ## Bugs
 
