@@ -91,7 +91,7 @@ function applyMeta() {
 	var handleKeyEvent = function(ev) {
 		if (ev.key.match(/\d/)) {
 			var num = parseInt(ev.key, 10);
-			if (num > 0) {
+			if (num > 0 && this.state.links.length >= num) {
 				this.navigate(num - 1);
 			}
 		}
