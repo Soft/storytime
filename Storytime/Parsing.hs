@@ -34,7 +34,7 @@ tok :: String -> Parser T.Text
 tok t = T.pack <$> (ws *> string t)
 
 readMeta :: Parser Meta
-readMeta = M.fromList <$> many (readLine <* eolOrEof)
+readMeta = M.fromList <$> many (readLine <* eolOrEof) <?> "metadata"
   where
     readLine = pure (,)
                <* char '%'
@@ -44,10 +44,10 @@ readMeta = M.fromList <$> many (readLine <* eolOrEof)
                <*> tillEndOfLine
 
 readActionClause :: Parser [Act]
-readActionClause = tok "," *> ws *> sepBy1 readAction (tok ",")
+readActionClause = tok "," *> ws *> sepBy1 readAction (tok ",") <?> "action definition"
 
 readCondClause :: Parser BExpr
-readCondClause = tok "|" *> ws *> try readBExpr <* ws
+readCondClause = tok "|" *> ws *> try readBExpr <* ws <?> "condition definition"
 
 readHeader :: Parser (Tag, [Act])
 readHeader = do
@@ -56,9 +56,10 @@ readHeader = do
   acts <- option [] readActionClause
   eolOrEof
   return (tag, acts)
+  <?> "header"
 
 readShebang :: Parser ()
-readShebang = string "#!" *> tillEndOfLine *> eolOrEof
+readShebang = string "#!" *> tillEndOfLine *> eolOrEof <?> "shebang"
 
 readInt :: Parser Integer
 readInt = do
@@ -70,8 +71,8 @@ readInt = do
 readValue :: Parser Value
 readValue = try number <|> var
   where
-    number = EInt <$> readInt
-    var = EVar <$> readIdent'
+    number = EInt <$> readInt <?> "integer"
+    var = EVar <$> readIdent' <?> "variable"
 
 readEqual :: Parser BExpr
 readEqual = Equal <$> readValue <* tok "=" <*> readValue
@@ -83,7 +84,7 @@ readGreaterThan :: Parser BExpr
 readGreaterThan = GreaterThan <$> readValue <* tok ">" <*> readValue
 
 readAction :: Parser Act
-readAction = try increment <|> try decrement <|> assignment
+readAction = try increment <|> try decrement <|> assignment <?> "action"
   where
     increment = pure Inc <* tok "+" <*> readIdent
     decrement = pure Dec <* tok "-" <*> readIdent
@@ -99,12 +100,13 @@ readLink = do
   ws
   title' <- tillEndOfLine
   return $ Link target' title' cond' act
+  <?> "link"
 
 parens :: Parser a -> Parser a
 parens = between (tok "(") (tok ")")
 
 readBExpr :: Parser BExpr
-readBExpr = buildExpressionParser table readTerm
+readBExpr = buildExpressionParser table readTerm <?> "boolean expression"
   where
     readTerm = try readEqual <|>
                try readLessThan <|>
@@ -118,7 +120,7 @@ readVal :: Parser IExpr
 readVal = Val <$> readValue
 
 readIExpr :: Parser IExpr
-readIExpr = buildExpressionParser table readTerm
+readIExpr = buildExpressionParser table readTerm <?> "integer expression"
   where
     readTerm = try readVal <|>
                parens readIExpr
