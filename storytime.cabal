@@ -29,7 +29,7 @@ executable storytime
                      , Storytime.Terminal
                      , Storytime.Web
   -- other-extensions:    
-  build-depends:       base >=4.7 && <4.8
+  build-depends:       base >=4.7 && <4.9
                      , containers >=0.5
                      , mtl >=2.2
                      , transformers >=0.4
