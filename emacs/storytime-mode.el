@@ -145,8 +145,10 @@
 (defvar storytime-mode-map
   (let ((map (make-keymap)))
     (define-key map (kbd "C-c C-c") #'storytime-launch)
-    (define-key map (kbd "C-c C-f") #'storytime-follow-link-at-point)
+    (define-key map (kbd "C-c C-o") #'storytime-follow-link-at-point)
     (define-key map (kbd "C-c C-j") #'storytime-jump-to-header)
+    (define-key map (kbd "C-c C-s h") #'storytime-insert-header)
+    (define-key map (kbd "C-c C-s l") #'storytime-insert-link)
     map)
   "Keymap for Storytime mode.")
 
@@ -155,7 +157,9 @@
   '("Storytime"
     ["Launch" storytime-launch]
     ["Follow link" storytime-follow-link-at-point]
-    ["Jump to header" storytime-jump-to-header]))
+    ["Jump to header" storytime-jump-to-header]
+    ["Insert header" storytime-insert-header]
+    ["Insert link" storytime-insert-link]))
 
 (defun storytime-update-overlays ()
   (remove-overlays)
@@ -169,6 +173,18 @@
 
 (defvar-local storytime-update-timer nil)
 
+(require 'autoinsert)
+
+(define-skeleton storytime-insert-link
+  "Insert a link"
+  "Target: "
+  "[" str "]: " _)
+
+(define-skeleton storytime-insert-header
+  "Insert a link"
+  "Tag: "
+  "* " str "\n\n" _)
+
 ;;;###autoload
 (define-derived-mode storytime-mode text-mode "Storytime"
   "Major mode for editing Storytime files."
@@ -178,6 +194,7 @@
   (setq-local outline-regexp storytime-regex-header)
   (easy-menu-add storytime-mode-menu storytime-mode-map)
   (setq imenu-create-index-function #'storytime-imenu-create-index)
+  (storytime-update-overlays)
   (setq storytime-update-timer
         (run-with-idle-timer 5 t
                              (lambda (buffer)
