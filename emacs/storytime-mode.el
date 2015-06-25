@@ -69,14 +69,23 @@
   "Face for links with missing targets"
   :group 'storytime)
 
+(defface storytime-operator-face
+  '((t (:inherit font-lock-preprocessor-face)))
+  "Face for operators"
+  :group 'storytime)
+
 (defcustom storytime-command "storytime"
   "Storytime command."
-  :group 'storytime)
+  :group 'storytim
+  :type 'string)
 
 (require 'font-lock)
 
+(defconst storytime-regex-tag
+  "[a-zA-Z][a-zA-Z0-9-/]+")
+
 (defconst storytime-regex-header
-  "^\\(\\*\\)[ \t]*\\([a-zA-Z][a-zA-Z0-9-/]+\\)"
+  (concat "^\\(\\*\\)[ \t]*\\(" storytime-regex-tag "\\)")
   "Regular expression for headers")
 
 (defconst storytime-regex-meta
@@ -84,8 +93,12 @@
   "Regular expression for metadata")
 
 (defconst storytime-regex-link
-  "^\\(\\[\\)\\([a-zA-Z][a-zA-Z0-9-/]+\\)\\(\\]\\):[ \t]*\\(.+\\)"
+  (concat "^\\(\\[\\)\\(" storytime-regex-tag "\\)\\(\\]\\):[ \t]*\\(.+\\)")
   "Regular expression for links")
+
+(defconst storytime-regex-operator
+  "&&\\|||\\|~\\|>\\|<\\|=="
+  "Regular expression for operators")
 
 (defconst storytime-mode-font-lock-keywords
   `((,storytime-regex-header . ((1 'storytime-prefix-face)
@@ -95,18 +108,32 @@
     (,storytime-regex-link . ((1 'storytime-bracket-face)
                               (2 'storytime-link-target-face)
                               (3 'storytime-bracket-face)
-                              (4 'storytime-link-title-face)))))
+                              (4 'storytime-link-title-face)))
+    (,storytime-regex-operator . 'storytime-operator-face)))
 
 (defvar-local storytime-process nil
   "Storytime process")
 
-(defun storytime-follow-link-at-point ()
-  (interactive)
+(defun storytime-link-at-point ()
   (save-match-data
     (let* ((line (thing-at-point 'line t))
            (matches (string-match storytime-regex-link line)))
       (when matches
-        (storytime-jump-to-header (match-string 2 line))))))
+        (match-string 2 line)))))
+
+(defun storytime-follow-link-at-point ()
+  (interactive)
+  (storytime-jump-to-header (storytime-link-at-point)))
+
+(defun storytime-follow-link-at-point-dwim ()
+  (interactive)
+  (let ((target (storytime-link-at-point)))
+    (if (storytime-header-exists-p target)
+        (storytime-jump-to-header target)
+      (progn
+        (goto-char (point-max))
+        (newline)
+        (storytime-insert-header target)))))
 
 (defun storytime-make-header-regex (header)
   (concat "^\\*[ \t]*" header))
@@ -145,7 +172,7 @@
 (defvar storytime-mode-map
   (let ((map (make-keymap)))
     (define-key map (kbd "C-c C-c") #'storytime-launch)
-    (define-key map (kbd "C-c C-o") #'storytime-follow-link-at-point)
+    (define-key map (kbd "C-c C-o") #'storytime-follow-link-at-point-dwim)
     (define-key map (kbd "C-c C-j") #'storytime-jump-to-header)
     (define-key map (kbd "C-c C-s h") #'storytime-insert-header)
     (define-key map (kbd "C-c C-s l") #'storytime-insert-link)
@@ -156,7 +183,7 @@
   "Menu for Storytime mode."
   '("Storytime"
     ["Launch" storytime-launch]
-    ["Follow link" storytime-follow-link-at-point]
+    ["Follow link" storytime-follow-link-at-point-dwim]
     ["Jump to header" storytime-jump-to-header]
     ["Insert header" storytime-insert-header]
     ["Insert link" storytime-insert-link]))
@@ -208,6 +235,8 @@
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.story\\'" . storytime-mode))
+
+;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.str\\'" . storytime-mode))
 
 (provide 'storytime-mode)

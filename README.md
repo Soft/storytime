@@ -192,6 +192,21 @@ ${num}
 
 The examples folder in the repository contains few example stories.
 
+## Emacs
+
+Although Storytime files can be edited using any text editor, Storytime comes
+with a dedicated major mode for Emacs. `storytime-mode` supports syntax
+highlighting and provides a few useful key bindings for Storytime specific
+functionality.
+
+-----------  ---------------------------------
+C-c C-c      Play through the current story
+C-c C-o      Follow link
+C-c C-j      Jump to header
+C-c C-s h    Insert header
+C-c C-s l    Insert link
+
+
 ## Bugs
 
 Storytime is still at the experimental stage of development and bugs are bound
