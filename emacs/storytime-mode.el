@@ -1,0 +1,164 @@
+;;; storytime-mode.el --- Emacs Major mode for Storytime files  -*- lexical-binding: t; -*-
+
+;; Copyright (C) 2015  Samuel Laurén
+
+;; Author: Samuel Laurén <samuel.lauren@iki.fi>
+;; Keywords: Storytime
+;; Homepage: https://bitbucket.org/Soft/storytime
+
+;; This file is not part of GNU Emacs.
+
+;; This program is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+;;; Code:
+
+(defgroup storytime nil
+  "Major mode for Storytime files."
+  :prefix "storytime-"
+  :group 'wp
+  :link '(url-link "https://bitbucket.org/Soft/storytime"))
+
+(defface storytime-header-face
+  '((t (:inherit font-lock-constant-face :weight bold)))
+  "Face for headers."
+  :group 'storytime)
+
+(defface storytime-prefix-face
+  '((t (:inherit font-lock-keyword-face)))
+  "Face for header prefixes."
+  :group 'storytime)
+
+(defface storytime-meta-key-face
+  '((t (:inherit font-lock-variable-name-face)))
+  "Face for metadata keys."
+  :group 'storytime)
+
+(defface storytime-meta-value-face
+  '((t (:inherit font-lock-string-face)))
+  "Face for metadata values."
+  :group 'storytime)
+
+(defface storytime-bracket-face
+  '((t (:inherit font-lock-builtin-face)))
+  "Face for brackets."
+  :group 'storytime)
+
+(defface storytime-link-target-face
+  '((t (:inherit font-lock-constant-face :underline t)))
+  "Face for link targets."
+  :group 'storytime)
+
+(defface storytime-link-title-face
+  '((t (:inherit font-lock-string-face)))
+  "Face for link titles."
+  :group 'storytime)
+
+(defcustom storytime-command "storytime"
+  "Storytime command."
+  :group 'storytime)
+
+(require 'font-lock)
+
+(defconst storytime-regex-header
+  "^\\(\\*\\)[ \t]*\\([a-zA-Z][a-zA-Z0-9-/]+\\)"
+  "Regular expression for headers")
+
+(defconst storytime-regex-meta
+  "^%[ \t]*\\([^:]+\\):[ \t]*\\(.+\\)"
+  "Regular expression for metadata")
+
+(defconst storytime-regex-link
+  "^\\(\\[\\)\\([a-zA-Z][a-zA-Z0-9-/]+\\)\\(\\]\\):[ \t]*\\(.+\\)"
+  "Regular expression for links")
+
+(defconst storytime-mode-font-lock-keywords
+  `((,storytime-regex-header . ((1 'storytime-prefix-face)
+                                (2 'storytime-header-face)))
+    (,storytime-regex-meta . ((1 'storytime-meta-key-face)
+                              (2 'storytime-meta-value-face)))
+    (,storytime-regex-link . ((1 'storytime-bracket-face)
+                              (2 'storytime-link-target-face)
+                              (3 'storytime-bracket-face)
+                              (4 'storytime-link-title-face)))))
+
+(defvar-local storytime-process nil
+  "Storytime process")
+
+(defun storytime-follow-link-at-point ()
+  (interactive)
+  (save-match-data
+    (let* ((line (thing-at-point 'line t))
+           (matches (string-match storytime-regex-link line)))
+      (when matches
+        (storytime-jump-to-header (match-string 2 line))))))
+
+(defun storytime-jump-to-header (header)
+  (interactive "sHeader: ")
+  (let ((point
+         (save-excursion
+           (goto-char (point-min))
+           (re-search-forward (concat "^\\*[ \t]*" header) nil t))))
+    (when point
+      (goto-char point))))
+
+(defun storytime-launch ()
+  (interactive)
+  (when storytime-process
+    (interrupt-process storytime-process))
+  (if buffer-file-name
+      (setq storytime-process
+            (start-process "storytime" "*Storytime*" storytime-command buffer-file-name))
+    (error "File must be saved before Storytime can be launched")))
+
+(defun storytime-imenu-create-index ()
+  (goto-char (point-min))
+  (save-match-data
+    (let ((matches '()))
+      (while (re-search-forward storytime-regex-header nil t)
+        (push (cons (match-string 2) (point)) matches))
+      (nreverse matches))))
+
+(defvar storytime-mode-map
+  (let ((map (make-keymap)))
+    (define-key map (kbd "C-c C-c") #'storytime-launch)
+    (define-key map (kbd "C-c C-f") #'storytime-follow-link-at-point)
+    (define-key map (kbd "C-c C-j") #'storytime-jump-to-header)
+    map)
+  "Keymap for Storytime mode.")
+
+(easy-menu-define storytime-mode-menu storytime-mode-map
+  "Menu for Storytime mode."
+  '("Storytime"
+    ["Launch" storytime-launch]
+    ["Follow link" storytime-follow-link-at-point]
+    ["Jump to header" storytime-jump-to-header]))
+
+;;;###autoload
+(define-derived-mode storytime-mode text-mode "Storytime"
+  "Major mode for editing Storytime files."
+  (setq font-lock-defaults '(storytime-mode-font-lock-keywords)
+        font-lock-multiline t)
+  (font-lock-mode 1)
+  (setq-local outline-regexp storytime-regex-header)
+  (easy-menu-add storytime-mode-menu storytime-mode-map)
+  (setq imenu-create-index-function #'storytime-imenu-create-index))
+
+;;;###autoload
+(add-to-list 'auto-mode-alist '("\\.story\\'" . storytime-mode))
+(add-to-list 'auto-mode-alist '("\\.str\\'" . storytime-mode))
+
+(provide 'storytime-mode)
+
+;; End:
+;;; storytime-mode.el ends here
