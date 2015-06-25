@@ -4,18 +4,28 @@
 name:                storytime
 version:             0.1.0.0
 synopsis:            Language for interactive fiction
--- description:         
 license:             GPL-3
 license-file:        LICENSE
 author:              Samuel Laurén
 maintainer:          samuel.lauren@iki.fi
--- copyright:           
+copyright:           (c) 2015 Samuel Laurén
+homepage:            https://bitbucket.org/Soft/storytime
+stability:           alpha
 category:            Language
 build-type:          Simple
--- extra-source-files:  
 cabal-version:       >=1.10
 data-dir:            static
 data-files:          *.html, *.css, *.js
+extra-source-files:  emacs/storytime-mode.el
+description:         Storytime is a choice-based interactive fiction system. It
+                     features a simple plain-text format for writing stories and
+                     has a slick browser-based interface for playing them out.
+                     Building more complex narratives is also supported through
+                     the use of conditions and actions.
+
+source-repository head
+  type:              mercurial
+  location:          https://bitbucket.org/Soft/storytime 
 
 executable storytime
   main-is:             Main.hs
