@@ -64,6 +64,11 @@
   "Face for link titles."
   :group 'storytime)
 
+(defface storytime-missing-target-face
+  '((t (:foreground "dark red" :underline (:color "dark red" :style wave))))
+  "Face for links with missing targets"
+  :group 'storytime)
+
 (defcustom storytime-command "storytime"
   "Storytime command."
   :group 'storytime)
@@ -103,12 +108,15 @@
       (when matches
         (storytime-jump-to-header (match-string 2 line))))))
 
+(defun storytime-make-header-regex (header)
+  (concat "^\\*[ \t]*" header))
+
 (defun storytime-jump-to-header (header)
   (interactive "sHeader: ")
   (let ((point
          (save-excursion
            (goto-char (point-min))
-           (re-search-forward (concat "^\\*[ \t]*" header) nil t))))
+           (re-search-forward (storytime-make-header-regex header) nil t))))
     (when point
       (goto-char point))))
 
@@ -129,6 +137,11 @@
         (push (cons (match-string 2) (point)) matches))
       (nreverse matches))))
 
+(defun storytime-header-exists-p (header)
+  (save-excursion
+    (goto-char (point-min))
+    (and (re-search-forward (storytime-make-header-regex header) nil t) t)))
+
 (defvar storytime-mode-map
   (let ((map (make-keymap)))
     (define-key map (kbd "C-c C-c") #'storytime-launch)
@@ -144,6 +157,18 @@
     ["Follow link" storytime-follow-link-at-point]
     ["Jump to header" storytime-jump-to-header]))
 
+(defun storytime-update-overlays ()
+  (remove-overlays)
+  (save-excursion
+    (goto-char (point-min))
+    (save-match-data
+      (while (re-search-forward storytime-regex-link nil t)
+        (unless (storytime-header-exists-p (match-string 2))
+          (let ((overlay (make-overlay (match-beginning 2) (match-end 2))))
+            (overlay-put overlay 'face 'storytime-missing-target-face)))))))
+
+(defvar-local storytime-update-timer nil)
+
 ;;;###autoload
 (define-derived-mode storytime-mode text-mode "Storytime"
   "Major mode for editing Storytime files."
@@ -152,7 +177,17 @@
   (font-lock-mode 1)
   (setq-local outline-regexp storytime-regex-header)
   (easy-menu-add storytime-mode-menu storytime-mode-map)
-  (setq imenu-create-index-function #'storytime-imenu-create-index))
+  (setq imenu-create-index-function #'storytime-imenu-create-index)
+  (setq storytime-update-timer
+        (run-with-idle-timer 5 t
+                             (lambda (buffer)
+                               (with-current-buffer buffer
+                                 (storytime-update-overlays)))
+                             (current-buffer)))
+  (add-hook 'kill-buffer-hook
+            (lambda ()
+              (when storytime-update-timer
+                (cancel-timer storytime-update-timer)))))
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.story\\'" . storytime-mode))
