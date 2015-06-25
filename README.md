@@ -199,12 +199,13 @@ with a dedicated major mode for Emacs. `storytime-mode` supports syntax
 highlighting and provides a few useful key bindings for Storytime specific
 functionality.
 
------------  ---------------------------------
-C-c C-c      Play through the current story
-C-c C-o      Follow link
-C-c C-j      Jump to header
-C-c C-s h    Insert header
-C-c C-s l    Insert link
+Key           | Action
+------------- | ---------------------------------
+`C-c C-c`     | Play through the current story
+`C-c C-o`     | Follow link
+`C-c C-j`     | Jump to header
+`C-c C-s h`   | Insert header
+`C-c C-s l`   | Insert link
 
 
 ## Bugs
