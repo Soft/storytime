@@ -11,8 +11,9 @@ body {
 
 #root {
 	margin: 50px auto;
-	font-family: Georgia, "Times New Roman", serif;
+	font-family: "EB Garamond", Crimson, Georgia, "Times New Roman", serif;
 	font-size: 1.3em;
+	text-redering: optimizelegibility;
 	line-height: 1.5em;
 	width: 50%;
 	max-width: 900px;
