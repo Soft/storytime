@@ -17,6 +17,7 @@ cabal-version:       >=1.10
 data-dir:            static
 data-files:          *.html, *.css, *.js
 extra-source-files:  emacs/storytime-mode.el
+                   , README.md
 description:         Storytime is a choice-based interactive fiction system. It
                      features a simple plain-text format for writing stories and
                      has a slick browser-based interface for playing them out.
