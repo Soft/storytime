@@ -11,7 +11,7 @@ Storytime is implemented in Haskell and currently the easiest way to install it
 is using Cabal packaging tool.
 
 ~~~bash
-hg clone https://bitbucket.org/Soft/storytime
+git clone https://bitbucket.org/Soft/storytime
 cd storytime
 cabal install --only-dependencies
 cabal build
