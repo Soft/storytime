@@ -40,16 +40,16 @@ executable storytime
                      , Storytime.Terminal
                      , Storytime.Web
   -- other-extensions:    
-  build-depends:       base >=4.7 && <4.9
-                     , containers >=0.5
-                     , mtl >=2.2
-                     , transformers >=0.4
-                     , text >=1.2
-                     , parsec >=3.1
+  build-depends:       base >= 4.11
+                     , containers >= 0.5
+                     , mtl >= 2.2
+                     , transformers >= 0.4
+                     , text >= 1.2
+                     , parsec >= 3.1
                      , optparse-applicative >= 0.11
                      , ansi-terminal >= 0.6
 
-                     , aeson >=0.9
+                     , aeson >= 0.9
                      , bytestring >= 0.10
                      , directory >= 1.2
                      , filepath >= 1.3
