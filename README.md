@@ -1,4 +1,7 @@
-# Storytime
+# Storytime 🌿
+
+[![Build Status](https://api.travis-ci.org/Soft/storytime.svg?branch=master)](https://travis-ci.org/Soft/storytime)
+[![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](LICENSE)
 
 Storytime is a choice-based interactive fiction system. It features a simple
 plain-text format for writing stories and has a slick browser-based interface
