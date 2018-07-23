@@ -1,0 +1,49 @@
+name: storytime
+version: '0.1.0.0'
+synopsis: Language for interactive fiction
+description: |
+  Storytime is a choice-based interactive fiction system. It features a simple
+  plain-text format for writing stories and has a slick browser-based interface
+  for playing them out. Building more complex narratives is also supported
+  through the use of conditions and actions.
+category: Language
+author: Samuel Laurén
+maintainer: samuel.lauren@iki.fi
+copyright: (c) 2018 Samuel Laurén
+license: GPL-3
+homepage: https://github.com/Soft/storytime
+git: https://github.com/Soft/storytime
+ghc-options: -Wall
+extra-source-files:
+- emacs/storytime-mode.el
+- README.md
+source-dirs:
+  - .
+dependencies:
+- base >=4.11
+- containers >=0.5
+- mtl >=2.2
+- transformers >=0.4
+- text >=1.2
+- parsec >=3.1
+- optparse-applicative >=0.11
+- ansi-terminal >=0.6
+- aeson >=0.9
+- bytestring >=0.10
+- directory >=1.2
+- filepath >=1.3
+- http-types >=0.8
+- process >=1.2
+- stm >=2.4
+- wai >=3.0
+- wai-app-static >=3.1
+- wai-extra >=3.0
+- warp >=3.0
+executables:
+  storytime:
+    main: Main.hs
+data-files:
+- static/*.html
+- static/*.css
+- static/*.js
+stability: alpha
