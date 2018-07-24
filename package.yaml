@@ -15,7 +15,7 @@ github: Soft/Storytime
 homepage: https://github.com/Soft/storytime
 git: https://github.com/Soft/storytime
 
-ghc-options: -Wall -fno-warn-name-shadowing
+# ghc-options: -Wall -fno-warn-name-shadowing
 
 extra-source-files:
 - emacs/storytime-mode.el
