@@ -11,14 +11,16 @@ author: Samuel Laurén
 maintainer: samuel.lauren@iki.fi
 copyright: (c) 2018 Samuel Laurén
 license: GPL-3
+github: Soft/Storytime
 homepage: https://github.com/Soft/storytime
 git: https://github.com/Soft/storytime
+
 ghc-options: -Wall
+
 extra-source-files:
 - emacs/storytime-mode.el
 - README.md
-source-dirs:
-  - .
+
 dependencies:
 - base >=4.11
 - containers >=0.5
@@ -39,11 +41,19 @@ dependencies:
 - wai-app-static >=3.1
 - wai-extra >=3.0
 - warp >=3.0
-executables:
-  storytime:
-    main: Main.hs
+
+library:
+  source-dirs: src
+
+executable:
+  source-dirs: driver
+  main: Main.hs
+  dependencies:
+    - storytime
+
 data-files:
 - static/*.html
 - static/*.css
 - static/*.js
+
 stability: alpha

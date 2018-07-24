@@ -122,7 +122,7 @@ getStaticDir = do
     then return path
     else do
     cwd <- getCurrentDirectory
-    return $ cwd </> "Static"
+    return $ cwd </> "static"
 
 webPlayer :: Storytime IO ()
 webPlayer = do

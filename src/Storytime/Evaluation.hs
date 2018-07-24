@@ -1,9 +1,7 @@
 {-# LANGUAGE OverloadedStrings, TypeFamilies #-}
 module Storytime.Evaluation (Eval(..), Evaluator, runEval, toText) where
 
-import Control.Applicative
 import Control.Monad.Reader
-import Data.Monoid
 import qualified Data.Map.Strict as M
 import qualified Data.Text as T
 
