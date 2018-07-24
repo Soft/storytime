@@ -126,7 +126,6 @@ getStaticDir = do
 
 webPlayer :: Storytime IO ()
 webPlayer = do
-  story <- ask
   make <- appMaker
   static <- liftIO getStaticDir
   prompt

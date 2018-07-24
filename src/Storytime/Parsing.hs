@@ -1,6 +1,5 @@
 module Storytime.Parsing where
 
-import Control.Applicative hiding (many, optional, (<|>))
 import Control.Monad
 import System.IO
 import Text.Parsec

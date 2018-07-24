@@ -1,6 +1,5 @@
 module Storytime.Validate (missingTargets, orphans) where
 
-import Control.Applicative
 import qualified Data.Map.Strict as M
 import qualified Data.Set as S
 

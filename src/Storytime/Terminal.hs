@@ -2,7 +2,6 @@
 module Storytime.Terminal (termPlayer) where
 
 import System.Console.ANSI
-import Control.Applicative
 import Control.Monad
 import Control.Monad.IO.Class
 import Data.Monoid ((<>))
