@@ -16,6 +16,7 @@ homepage: https://github.com/Soft/storytime
 git: https://github.com/Soft/storytime
 
 # ghc-options: -Wall -fno-warn-name-shadowing
+ghc-options: -threaded 
 
 extra-source-files:
 - emacs/storytime-mode.el
@@ -29,9 +30,7 @@ dependencies:
 - text >=1.2
 - parsec >=3.1
 - optparse-applicative >=0.11
-- ansi-terminal >=0.6
 - aeson >=0.9
-- bytestring >=0.10
 - directory >=1.2
 - filepath >=1.3
 - http-types >=0.8
@@ -41,6 +40,12 @@ dependencies:
 - wai-app-static >=3.1
 - wai-extra >=3.0
 - warp >=3.0
+- servant >=0.14.1
+- servant-server >=0.14.1
+- http-api-data
+- uuid >=1.3
+- monad-loops >=0.4
+- open-browser >=0.2
 
 library:
   source-dirs: src
