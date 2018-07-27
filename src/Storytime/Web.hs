@@ -16,12 +16,10 @@ import Network.Wai.Handler.Warp (Port, run)
 import Servant.API
 import Servant.Server
 import Web.FormUrlEncoded(FromForm(..), parseUnique)
-import Servant.Static.TH (createApiAndServerFrontEndDecs)
 
 import Storytime.Monadic
+import Storytime.Static
 import Storytime.Types
-
-$(createApiAndServerFrontEndDecs)
 
 type StorytimeWeb = Storytime Handler
 
@@ -33,7 +31,7 @@ type StorytimeAPI = "api" :>
 
 storytimeAPI = Proxy :: Proxy StorytimeAPI
 
-type FullAPI = StorytimeAPI :<|> FrontEnd
+type FullAPI = StorytimeAPI :<|> StaticServerAPI
 
 fullAPI = Proxy :: Proxy FullAPI
 
@@ -90,7 +88,7 @@ server = handleRegister :<|>
 
 application :: StoryState -> Application
 application st = serve fullAPI
-  $ (hoistServer storytimeAPI (runStorytime st) server) :<|> frontEndServer
+  $ (hoistServer storytimeAPI (runStorytime st) server) :<|> staticServer
 
 runServer :: Port -> StoryState -> IO ()
 runServer p st = run p $ application st
