@@ -14,6 +14,7 @@ license: GPL-3
 github: Soft/Storytime
 homepage: https://github.com/Soft/storytime
 git: https://github.com/Soft/storytime
+build-type: Custom
 
 # ghc-options: -Wall -fno-warn-name-shadowing
 ghc-options: -threaded 
@@ -42,6 +43,7 @@ dependencies:
 - warp >=3.0
 - servant >=0.14.1
 - servant-server >=0.14.1
+- servant-static-th >=0.2
 - http-api-data
 - uuid >=1.3
 - monad-loops >=0.4

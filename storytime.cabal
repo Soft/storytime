@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 254a7fa981c6cfc8d36e9b3c821aaf919e3713d06641e286e980635909c182e6
+-- hash: a07ac495021d769f37d1955d7a5e6901813a25386f03857e34f9e46b7288a483
 
 name:                storytime
 version:             0.1.0.0
@@ -16,7 +16,7 @@ homepage:            https://github.com/Soft/storytime
 bug-reports:         https://github.com/Soft/Storytime/issues
 stability:           alpha
 category:            Language
-build-type:          Simple
+build-type:          Custom
 cabal-version:       >= 1.10
 description:         Storytime is a choice-based interactive fiction system. It features a simple
                      plain-text format for writing stories and has a slick browser-based interface
@@ -44,7 +44,6 @@ library
     , containers >=0.5
     , directory >=1.2
     , filepath >=1.3
-    , hostname >=1.0
     , http-api-data
     , http-types >=0.8
     , monad-loops >=0.4
@@ -55,6 +54,7 @@ library
     , process >=1.2
     , servant >=0.14.1
     , servant-server >=0.14.1
+    , servant-static-th >=0.2
     , stm >=2.4
     , text >=1.2
     , transformers >=0.4
@@ -86,7 +86,6 @@ executable storytime
     , containers >=0.5
     , directory >=1.2
     , filepath >=1.3
-    , hostname >=1.0
     , http-api-data
     , http-types >=0.8
     , monad-loops >=0.4
@@ -97,6 +96,7 @@ executable storytime
     , process >=1.2
     , servant >=0.14.1
     , servant-server >=0.14.1
+    , servant-static-th >=0.2
     , stm >=2.4
     , storytime
     , text >=1.2

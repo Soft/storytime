@@ -1,4 +1,4 @@
-{-# LANGUAGE DataKinds, TypeOperators, OverloadedStrings, DeriveGeneric, DuplicateRecordFields, FlexibleContexts #-}
+{-# LANGUAGE DataKinds, TypeOperators, OverloadedStrings, DeriveGeneric, DuplicateRecordFields, FlexibleContexts, TemplateHaskell #-}
 module Storytime.Web (runServer) where
 
 import Control.Monad (unless)
@@ -16,19 +16,26 @@ import Network.Wai.Handler.Warp (Port, run)
 import Servant.API
 import Servant.Server
 import Web.FormUrlEncoded(FromForm(..), parseUnique)
+import Servant.Static.TH (createApiAndServerFrontEndDecs)
 
 import Storytime.Monadic
 import Storytime.Types
 
+$(createApiAndServerFrontEndDecs)
+
 type StorytimeWeb = Storytime Handler
 
 type StorytimeAPI = "api" :>
-  ( "register" :> Get '[JSON] RegisterResponse :<|>
+  ( "register" :> Post '[JSON] RegisterResponse :<|>
     "meta" :> Get '[JSON] Meta :<|>
     Capture "session" UUID :> "current" :> Get '[JSON] CurrentResponse :<|>
     Capture "session" UUID :> "select" :> ReqBody '[FormUrlEncoded] LinkIndex :> Post '[JSON] NoContent )
 
 storytimeAPI = Proxy :: Proxy StorytimeAPI
+
+type FullAPI = StorytimeAPI :<|> FrontEnd
+
+fullAPI = Proxy :: Proxy FullAPI
 
 data CurrentResponse = CurrentResponse { text :: T.Text, links :: [T.Text] }
   deriving (Show, Generic)
@@ -44,7 +51,7 @@ data LinkIndex = LinkIndex { linkIndex :: Int }
   deriving (Show, Generic)
 
 instance FromForm LinkIndex
-
+  
 handleRegister :: StorytimeWeb RegisterResponse
 handleRegister = do
   session <- untilJust $ do
@@ -82,8 +89,8 @@ server = handleRegister :<|>
          handleSelect
 
 application :: StoryState -> Application
-application st = serve storytimeAPI
-  $ hoistServer storytimeAPI (runStorytime st) server
+application st = serve fullAPI
+  $ (hoistServer storytimeAPI (runStorytime st) server) :<|> frontEndServer
 
 runServer :: Port -> StoryState -> IO ()
 runServer p st = run p $ application st
