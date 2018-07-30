@@ -57,7 +57,7 @@ const app = new Vue({
                   <section className="content">{ this.text }</section>
                   <ol className="link">
                   {this.links.map((link, index) =>
-                    <li onClick={ this.handleSelect.bind(this, index) }>{ link }</li>)}
+                    <li onClick={ this.handleSelect.bind(this, index) }>{ link.text }</li>)}
                   </ol>
                 </section>);
     }
