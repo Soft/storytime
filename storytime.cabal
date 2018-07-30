@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 675a2393d27cb46e5c938efb9c7c26c272d23811269a38b2821381763c396037
+-- hash: d97a9bc5d9725dcda32ddd68e93554b06a7dfeb3fe8c79d66d212b4f8a835912
 
 name:                storytime
 version:             0.1.0.0
@@ -17,7 +17,7 @@ bug-reports:         https://github.com/Soft/Storytime/issues
 stability:           alpha
 category:            Language
 build-type:          Custom
-cabal-version:       >= 1.10
+cabal-version:       >= 1.24
 description:         Storytime is a choice-based interactive fiction system. It features a simple
                      plain-text format for writing stories and has a slick browser-based interface
                      for playing them out. Building more complex narratives is also supported
@@ -34,10 +34,15 @@ source-repository head
   type: git
   location: https://github.com/Soft/Storytime
 
+custom-setup
+  setup-depends:
+      Cabal >=2.2
+    , base >=4.11
+    , process >=1.6
+
 library
   hs-source-dirs:
       src
-  ghc-options: -threaded
   build-depends:
       aeson >=0.9
     , base >=4.11

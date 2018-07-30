@@ -14,7 +14,14 @@ license: GPL-3
 github: Soft/Storytime
 homepage: https://github.com/Soft/storytime
 git: https://github.com/Soft/storytime
+
 build-type: Custom
+
+custom-setup:
+  dependencies:
+    - base >=4.11
+    - process >=1.6
+    - Cabal >=2.2
 
 extra-source-files:
 - emacs/storytime-mode.el
