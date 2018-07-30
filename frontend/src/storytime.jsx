@@ -1,4 +1,5 @@
 import Vue from 'vue';
+import 'whatwg-fetch';
 import "./main.css";
 
 const api_register = "/api/register";
@@ -36,13 +37,12 @@ const app = new Vue({
                 });
         },
         selectLink(index) {
-            let formData = new URLSearchParams();
-            formData.append("linkIndex", index.toString());
+            let data = new URLSearchParams();
+            data.append("linkIndex", index.toString());
             return fetch(api_select(this.session),
-                         { method: "POST", body: formData });
+                         { method: "POST", body: data });
         },
         handleSelect(index) {
-            console.log(index);
             this.selectLink(index)
                 .then(this.fetchCurrent);
         }
