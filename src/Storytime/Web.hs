@@ -77,8 +77,8 @@ handleSelect :: UUID -> LinkIndex -> StorytimeWeb NoContent
 handleSelect session (LinkIndex ind) = do
   links <- maybe404 $ currentLinks session
   unless (0 <= ind && ind < length links) $ throwError err400
-  selectLink session (links !! ind)
-  return $ NoContent
+  select <- selectLink session (links !! ind)
+  either (const $ throwError err501) (const $ return NoContent) select
 
 server :: ServerT StorytimeAPI StorytimeWeb
 server = handleRegister :<|>

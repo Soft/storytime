@@ -24,6 +24,8 @@ data StoryState = StoryState
 
 type Storytime m = ReaderT StoryState m
 
+data MissingSection = MissingSection
+
 data Section = Sect
   { tag :: Tag
   , sectActs :: [Act]

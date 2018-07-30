@@ -64,8 +64,10 @@ selectSection u s = let f u = u { section = s }
 hasSection :: MonadIO m => Tag -> Storytime m Bool
 hasSection t = M.member t <$> asks (sects . story)
 
-selectLink :: MonadIO m => UserID -> Link -> Storytime m ()
+selectLink :: MonadIO m => UserID -> Link -> Storytime m (Either MissingSection ())
 selectLink u l = performActions u (acts l)
                  >> asks (sects . story)
-                 >>= maybe (return ()) (selectSection u) . M.lookup (target l)
+                 >>= maybe
+                 (return $ Left MissingSection)
+                 (\s -> selectSection u s >> (return $ Right ())) . M.lookup (target l)
   
