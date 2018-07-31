@@ -26,7 +26,7 @@ alterUserState :: MonadIO m => (Maybe UserState -> Maybe UserState) -> UserID ->
 alterUserState f u = asks userState >>= \st ->
   liftIO $ atomically (modifyTVar' st $ M.alter f u)
       
-lookupMeta :: MonadIO m => T.Text -> Storytime m (Maybe T.Text)
+lookupMeta :: Monad m => T.Text -> Storytime m (Maybe T.Text)
 lookupMeta k =  M.lookup k <$> asks (meta . story)
   
 hasUser :: MonadIO m => UserID -> Storytime m Bool
@@ -61,7 +61,7 @@ selectSection u s = let f u = u { section = s }
                     in (performActions u $ sectActs s)
                        >> alterUserState (fmap f) u
 
-hasSection :: MonadIO m => Tag -> Storytime m Bool
+hasSection :: Monad m => Tag -> Storytime m Bool
 hasSection t = M.member t <$> asks (sects . story)
 
 selectLink :: MonadIO m => UserID -> Link -> Storytime m (Either MissingSection ())

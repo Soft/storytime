@@ -36,8 +36,17 @@ type FullAPI = StorytimeAPI :<|> StaticServerAPI
 
 fullAPI = Proxy :: Proxy FullAPI
 
-data CurrentResponse = CurrentResponse { text :: T.Text, links :: [T.Text] }
-  deriving (Show, Generic)
+data LinkResponse = LinkResponse {
+  text :: T.Text,
+  valid :: Bool
+  } deriving (Show, Generic)
+
+instance ToJSON LinkResponse
+
+data CurrentResponse = CurrentResponse {
+  text :: T.Text,
+  links :: [LinkResponse]
+  } deriving (Show, Generic)
 
 instance ToJSON CurrentResponse
 
@@ -82,7 +91,11 @@ handleCurrent :: UUID -> StorytimeWeb CurrentResponse
 handleCurrent session = do
   text <- maybe404 $ currentText session
   links <- maybe404 $ currentLinks session
-  return $ CurrentResponse text $ title <$> links
+  links' <- mapM makeLink links
+  return $ CurrentResponse text links'
+  where
+    makeLink l = hasSection (target l)
+                 >>= return . LinkResponse (title l)
 
 handleSelect :: UUID -> LinkIndex -> StorytimeWeb NoContent
 handleSelect session (LinkIndex ind) = do
