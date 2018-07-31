@@ -12,6 +12,7 @@
          return {
              session: false,
              meta: {},
+             title: false,
              segments: []
          };
      },
@@ -26,14 +27,17 @@
              return fetch(api_meta)
                  .then(response => response.json())
                  .then(json => {
-                     this.meta = json.meta;
+                     this.meta = json;
+                     if ("title" in json) {
+                         this.title = json.title;
+                     }
                  });
          },
          fetchCurrent() {
              return fetch(api_current(this.session))
                  .then(response => response.json())
                  .then(json => {
-                     this.segments.push(json)
+                     this.segments.push(json);
                  });
          },
          selectLink(index) {
@@ -45,7 +49,7 @@
          handleSelect(index) {
              this.selectLink(index)
                  .then(this.fetchCurrent);
-         },
+         }
      },
      created () {
          this.openSession()
@@ -57,6 +61,7 @@
 
 <template>
     <section class="story">
+        <h1 v-if="title">{{ title }}</h1>
         <segment v-for="(segment, index) in segments"
                  v-bind:key="index"
                  v-bind:active="index == segments.length - 1"
