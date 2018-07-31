@@ -24,8 +24,9 @@ import Storytime.Types
 type StorytimeWeb = Storytime Handler
 
 type StorytimeAPI = "api" :>
-  ( "register" :> Post '[JSON] RegisterResponse :<|>
+  ( "register" :> Post '[JSON] SessionResponse :<|>
     "meta" :> Get '[JSON] Meta :<|>
+    Capture "session" UUID :> "duplicate" :> Post '[JSON] SessionResponse :<|>
     Capture "session" UUID :> "current" :> Get '[JSON] CurrentResponse :<|>
     Capture "session" UUID :> "select" :> ReqBody '[FormUrlEncoded] LinkIndex :> Post '[JSON] NoContent )
 
@@ -40,32 +41,42 @@ data CurrentResponse = CurrentResponse { text :: T.Text, links :: [T.Text] }
 
 instance ToJSON CurrentResponse
 
-data RegisterResponse = RegisterResponse { sessionID :: UUID }
+data SessionResponse = SessionResponse { sessionID :: UUID }
   deriving (Show, Generic)
 
-instance ToJSON RegisterResponse
+instance ToJSON SessionResponse
 
 data LinkIndex = LinkIndex { linkIndex :: Int }
   deriving (Show, Generic)
 
 instance FromForm LinkIndex
+
+generateSession :: StorytimeWeb UUID
+generateSession = untilJust $ do
+  session <- liftIO nextRandom
+  reserved <- hasUser session
+  return $ if not reserved
+           then Just session
+           else Nothing
   
-handleRegister :: StorytimeWeb RegisterResponse
+handleRegister :: StorytimeWeb SessionResponse
 handleRegister = do
-  session <- untilJust $ do
-    session <- liftIO nextRandom
-    reserved <- hasUser session
-    return $ if not reserved
-             then Just session
-             else Nothing
+  session <- generateSession
   resetUser session
-  return $ RegisterResponse session
+  return $ SessionResponse session
 
 handleMeta :: StorytimeWeb Meta
 handleMeta = asks $ meta . story
 
 maybe404 :: MonadError ServantErr m => m (Maybe a) -> m a
 maybe404 = (>>= maybe (throwError err404) return)
+
+handleDuplicate :: UUID -> StorytimeWeb SessionResponse
+handleDuplicate session = do
+  new <- generateSession
+  state <- maybe404 $ withUserState id session
+  alterUserState (const $ Just state) new
+  return $ SessionResponse new
 
 handleCurrent :: UUID -> StorytimeWeb CurrentResponse
 handleCurrent session = do
@@ -83,6 +94,7 @@ handleSelect session (LinkIndex ind) = do
 server :: ServerT StorytimeAPI StorytimeWeb
 server = handleRegister :<|>
          handleMeta :<|>
+         handleDuplicate :<|>
          handleCurrent :<|>
          handleSelect
 
