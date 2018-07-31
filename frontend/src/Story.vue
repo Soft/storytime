@@ -13,6 +13,7 @@
              session: false,
              meta: {},
              title: false,
+             author: false,
              segments: []
          };
      },
@@ -31,9 +32,12 @@
                      if ("title" in json) {
                          this.title = json.title;
                      }
+                     if ("author" in json) {
+                         this.author = json.author;
+                     }
                  });
          },
-         fetchCurrent() {
+         addCurrentSegment() {
              return fetch(api_current(this.session))
                  .then(response => response.json())
                  .then(json => {
@@ -48,27 +52,30 @@
          },
          handleSelect(index) {
              this.selectLink(index)
-                 .then(this.fetchCurrent);
+                 .then(this.addCurrentSegment);
          }
      },
      created () {
          this.openSession()
              .then(this.fetchMeta)
-             .then(this.fetchCurrent);
+             .then(this.addCurrentSegment);
      }
  };
 </script>
 
 <template>
-    <section class="story">
-        <h1 v-if="title">{{ title }}</h1>
+    <main class="story">
+        <header>
+            <h1 v-if="title">{{ title }}</h1>
+            <span v-if="author" class="author">{{ author }}</span>
+        </header>
         <segment v-for="(segment, index) in segments"
                  v-bind:key="index"
                  v-bind:active="index == segments.length - 1"
                  v-bind:text="segment.text"
                  v-bind:links="segment.links"
                  v-on:select="handleSelect" />
-    </section>
+    </main>
 </template>
 
 <style scoped>
