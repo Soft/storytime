@@ -58,8 +58,8 @@
 <template>
     <section class="story">
         <segment v-for="(segment, index) in segments"
-                 v-bind:active="index == segments.len - 1"
                  v-bind:key="index"
+                 v-bind:active="index == segments.length - 1"
                  v-bind:text="segment.text"
                  v-bind:links="segment.links"
                  v-on:select="handleSelect" />

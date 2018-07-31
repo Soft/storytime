@@ -13,10 +13,14 @@
         <section>{{ text }}</section>
         <ol>
             <li v-for="(link, index) in links"
-                v-bind:class="{ invalid: !link.valid }"
-                v-on:key="index"
-                v-on:click="$emit('select', index)">
-                {{ link.text }}
+                v-bind:key="index"
+                v-bind:class="{ invalid: !link.valid }">
+                <template v-if="active">
+                    <a v-on:click.prevent="$emit('select', index)">{{ link.text }}</a>
+                </template>
+                <template v-else>
+                    {{ link.text }}
+                </template>
             </li>
         </ol>
     </section>
