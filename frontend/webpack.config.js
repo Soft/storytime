@@ -1,9 +1,10 @@
 const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+const { VueLoaderPlugin } = require("vue-loader");
 
 module.exports = {
-    entry: "./src/storytime.jsx",
+    entry: "./src/storytime.js",
     output: {
         filename: "storytime.js",
         path: path.resolve(__dirname, "dist")
@@ -16,7 +17,8 @@ module.exports = {
         }),
         new MiniCssExtractPlugin({
             filename: "main.css"
-        })
+        }),
+        new VueLoaderPlugin()
     ],
     module: {
         rules: [
@@ -31,15 +33,8 @@ module.exports = {
                 }
             },
             {
-                test: /\.jsx$/,
-                exclude: /node_modules/,
-                use: {
-                    loader: "babel-loader",
-                    options: {
-                        presets: ["env"],
-                        plugins: ["transform-vue-jsx"]
-                    }
-                }
+                test: /\.vue$/,
+                use: "vue-loader"
             },
             {
                 test: /\.css$/,
