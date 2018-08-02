@@ -65,7 +65,7 @@
 
 <template>
     <main class="story">
-        <header>
+        <header v-if="title || author">
             <h1 v-if="title">{{ title }}</h1>
             <span v-if="author" class="author">{{ author }}</span>
         </header>
